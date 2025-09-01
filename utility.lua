@@ -391,17 +391,27 @@ function UtilitySystem.setReducedLag(enabled)
         local lighting = game:GetService("Lighting")
         local workspace = game:GetService("Workspace")
         
-        -- Store original settings
+        -- Store original settings (safely with pcall)
         local originalSettings = {
-            shadowMapEnabled = lighting.ShadowMapEnabled,
-            globalShadows = lighting.GlobalShadows,
             meshPartDetail = workspace.MeshPartHeadsAndAccessories,
             streamingEnabled = workspace.StreamingEnabled
         }
         
-        -- Apply performance settings
-        lighting.ShadowMapEnabled = false
-        lighting.GlobalShadows = false
+        -- Safely try to get shadow settings
+        pcall(function()
+            originalSettings.shadowMapEnabled = lighting.ShadowMapEnabled
+        end)
+        pcall(function()
+            originalSettings.globalShadows = lighting.GlobalShadows
+        end)
+        
+        -- Apply performance settings (safely)
+        pcall(function()
+            lighting.ShadowMapEnabled = false
+        end)
+        pcall(function()
+            lighting.GlobalShadows = false
+        end)
         workspace.MeshPartHeadsAndAccessories = Enum.MeshPartHeadsAndAccessories.Disabled
         workspace.StreamingEnabled = true
         
@@ -434,8 +444,17 @@ function UtilitySystem.setReducedLag(enabled)
             local workspace = game:GetService("Workspace")
             local settings = UtilitySystem._originalSettings
             
-            lighting.ShadowMapEnabled = settings.shadowMapEnabled
-            lighting.GlobalShadows = settings.globalShadows
+            -- Restore original settings (safely)
+            pcall(function()
+                if settings.shadowMapEnabled ~= nil then
+                    lighting.ShadowMapEnabled = settings.shadowMapEnabled
+                end
+            end)
+            pcall(function()
+                if settings.globalShadows ~= nil then
+                    lighting.GlobalShadows = settings.globalShadows
+                end
+            end)
             workspace.MeshPartHeadsAndAccessories = settings.meshPartDetail
             workspace.StreamingEnabled = settings.streamingEnabled
         end
