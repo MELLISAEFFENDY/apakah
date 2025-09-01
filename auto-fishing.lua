@@ -171,8 +171,31 @@ if not success5 then
     utilityLoaded = false
 end
 
--- Initialize Utility System safely
+-- Initialize Utility System safely with rendering safeguards
 if utilityLoaded and UtilitySystem then
+    -- IMPORTANT: Add rendering safeguards to prevent white screen
+    if UtilitySystem.setFastFPS then
+        local originalSetFastFPS = UtilitySystem.setFastFPS
+        UtilitySystem.setFastFPS = function(enabled)
+            if enabled then
+                warn("⚠️ WARNING: Fast FPS can cause white screen! Use with caution!")
+                wait(1) -- Give user time to see warning
+            end
+            return originalSetFastFPS(enabled)
+        end
+    end
+    
+    if UtilitySystem.setReducedLag then
+        local originalSetReducedLag = UtilitySystem.setReducedLag
+        UtilitySystem.setReducedLag = function(enabled)
+            if enabled then
+                warn("⚠️ WARNING: Reduced Lag will modify rendering! Use Performance Mode instead if unsure!")
+                wait(0.5)
+            end
+            return originalSetReducedLag(enabled)
+        end
+    end
+    
     if type(UtilitySystem) == "table" and UtilitySystem.init then
         local success, result = pcall(function()
             return UtilitySystem.init()
@@ -2013,9 +2036,12 @@ local AdvancedSection = UtilityTab:AddSection({
 
 AdvancedSection:AddLabel("🕵️ Anti Detect Staff - Hidden from staff detection")
 AdvancedSection:AddLabel("😴 Anti AFK - Prevent AFK detection")
-AdvancedSection:AddLabel("🚀 Reduced Lag - Performance optimization")
-AdvancedSection:AddLabel("⚡ Fast FPS - Maximum FPS boost")
+AdvancedSection:AddLabel("🚀 Reduced Lag - Performance optimization (SAFE)")
+AdvancedSection:AddLabel("⚠️ Fast FPS - Can cause white screen! Use carefully!")
 AdvancedSection:AddLabel("👁️ ESP Player - See all players with highlights")
+AdvancedSection:AddLabel(" ")
+AdvancedSection:AddLabel("⚠️ WARNING: Fast FPS may make game invisible!")
+AdvancedSection:AddLabel("💡 TIP: Use Performance Mode preset for safe optimization")
 
 local AntiDetectStaffToggle = AdvancedSection:AddToggle({
     Name = "Anti Detect Staff",
@@ -2057,11 +2083,19 @@ local ReducedLagToggle = AdvancedSection:AddToggle({
 })
 
 local FastFPSToggle = AdvancedSection:AddToggle({
-    Name = "Fast FPS",
+    Name = "⚠️ Fast FPS (RISKY)",
     Default = false,
     Flag = "fastfpsutility",
     Save = true,
     Callback = function(Value)
+        if Value then
+            -- Show warning notification
+            OrionLib:MakeNotification({
+                Name = "⚠️ Fast FPS Warning",
+                Content = "This feature can make the game invisible! Disable if screen turns white.",
+                Time = 5
+            })
+        end
         if UtilitySystem then
             UtilitySystem.setFastFPS(Value)
             flags['fastfpsutility'] = Value
@@ -2132,6 +2166,47 @@ PresetsSection:AddButton({
         ReducedLagToggle:Set(false)
         FastFPSToggle:Set(false)
         ESPPlayerToggle:Set(false)
+        OrionLib:MakeNotification({
+            Name = "✅ Reset Complete",
+            Content = "All utility features have been disabled.",
+            Time = 3
+        })
+    end    
+})
+
+PresetsSection:AddButton({
+    Name = "🆘 EMERGENCY: Fix White Screen",
+    Callback = function()
+        -- Force disable all rendering modifications
+        FastFPSToggle:Set(false)
+        ReducedLagToggle:Set(false)
+        
+        -- Emergency restore rendering
+        pcall(function()
+            local runService = game:GetService("RunService")
+            runService:Set3dRenderingEnabled(true)
+            
+            -- Restore all parts visibility
+            for _, obj in pairs(game.Workspace:GetDescendants()) do
+                if obj:IsA("BasePart") then
+                    obj.Transparency = math.max(0, obj.Transparency - 1)
+                    obj.CastShadow = true
+                elseif obj:IsA("Decal") or obj:IsA("Texture") then
+                    obj.Transparency = math.max(0, obj.Transparency - 1)
+                elseif obj:IsA("SurfaceGui") or obj:IsA("BillboardGui") then
+                    obj.Enabled = true
+                end
+            end
+            
+            -- Restore quality
+            game:GetService("UserSettings"):GetService("UserGameSettings").SavedQualityLevel = Enum.SavedQualitySetting.Automatic
+        end)
+        
+        OrionLib:MakeNotification({
+            Name = "🆘 Emergency Restore",
+            Content = "Attempted to fix white screen. If still white, rejoin the game.",
+            Time = 5
+        })
     end    
 })
 

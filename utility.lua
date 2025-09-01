@@ -478,18 +478,23 @@ function UtilitySystem.setFastFPS(enabled)
         settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
         settings().Rendering.EagerBulkExecution = true
         
-        -- Hide all non-essential parts
+        -- Optimize rendering without making everything invisible
         connections.fastFPS = RunService.Heartbeat:Connect(function()
             for _, obj in pairs(workspace:GetDescendants()) do
                 if obj:IsA("BasePart") and obj.Parent ~= character then
-                    if not obj:FindFirstChild("Essential") then
-                        obj.Transparency = 1
-                        obj.CanCollide = false
+                    -- Only optimize distant objects, not make them invisible
+                    if (character.HumanoidRootPart.Position - obj.Position).Magnitude > 200 then
+                        obj.CastShadow = false
+                        if obj.Material == Enum.Material.Neon then
+                            obj.Material = Enum.Material.SmoothPlastic
+                        end
                     end
-                elseif obj:IsA("Decal") or obj:IsA("Texture") then
-                    obj.Transparency = 1
-                elseif obj:IsA("SurfaceGui") or obj:IsA("BillboardGui") then
+                elseif obj:IsA("ParticleEmitter") then
                     obj.Enabled = false
+                elseif obj:IsA("Beam") or obj:IsA("Trail") then
+                    obj.Enabled = false
+                elseif obj:IsA("Explosion") then
+                    obj:Destroy()
                 end
             end
         end)
