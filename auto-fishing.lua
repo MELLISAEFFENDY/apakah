@@ -1,41 +1,14 @@
 --[[
     Auto Fishing Script for Roblox Fisch
     Created by: MELLISAEFFENDY
-    Description: Advanced auto fishing script with Instant Reel Module + Auto Drop Bobber + Auto Shake V2
-    Version: 1.4
+    Description: Advanced auto fishing script with Instant Reel + Auto Drop Bobber + Auto Shake V2 + Teleport System
+    Version: 1.5
     GitHub: https://github.com/MELLISAEFFENDY/apakah
     
     ⚡ NEW: Instant Reel Module - Lightning fast reel system with anti-detection
     🎣 NEW: Auto Drop Bobber - Automatically drops and recasts bobber when no fish bites
-    👻 NEW: Auto Shake V2 - Invis-- Auto Drop Bobber notification
-spawn(function()
-    wait(4)
-    OrionLib:MakeNotification({
-        Name = "🎣 Auto Drop Bobber",
-        Content = "New feature! Automatically drops and recasts bobber when no fish bites. Configure time in settings.",
-        Time = 4
-    })
-end)
-
--- Auto Shake V2 notification
-spawn(function()
-    wait(6)
-    OrionLib:MakeNotification({
-        Name = "👻 Auto Shake V2",
-        Content = "Invisible ultra-fast shake system! Much faster than regular Auto Shake. Try it now!",
-        Time = 4
-    })
-end)
-
--- Teleport System notification
-spawn(function()
-    wait(8)
-    OrionLib:MakeNotification({
-        Name = "🚀 Teleport System",
-        Content = "New Teleport tab! Instant travel to 10+ fishing locations with multiple teleport methods.",
-        Time = 4
-    })
-end)ultra-fast shake system
+    👻 NEW: Auto Shake V2 - Invisible and ultra-fast shake system
+    🚀 NEW: Teleport System - Advanced teleport with multiple methods and locations
     🎨 UI: Uses OrionLib (ui.lua) for professional interface
 ]]
 
@@ -83,7 +56,22 @@ end
 
 -- Initialize modules
 InstantReel = InstantReel.init()
-TeleportSystem.enableAutoReturn()
+
+-- Initialize Teleport System safely
+if TeleportSystem and TeleportSystem.enableAutoReturn then
+    TeleportSystem.enableAutoReturn()
+else
+    warn("TeleportSystem not loaded properly or enableAutoReturn function not available")
+end
+
+--// Helper Functions
+local function safeTeleportCall(func, ...)
+    if TeleportSystem and TeleportSystem[func] then
+        return TeleportSystem[func](...)
+    else
+        return false, "TeleportSystem not available"
+    end
+end
 
 --// Utility Functions
 local function getChar()
@@ -366,10 +354,10 @@ local QuickTeleportSection = TeleportTab:AddSection({
 QuickTeleportSection:AddButton({
     Name = "🏠 Moosewood Docks",
     Callback = function()
-        local success, msg = TeleportSystem.teleportToLocation("Moosewood", "cframe", false)
+        local success, msg = safeTeleportCall("teleportToLocation", "Moosewood", "cframe", false)
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
-            Content = msg,
+            Content = msg or (success and "Teleported successfully" or "Teleport failed"),
             Time = 3
         })
     end    
@@ -542,7 +530,7 @@ CustomTeleportSection:AddTextbox({
 CustomTeleportSection:AddButton({
     Name = "🎯 Teleport to Coordinates",
     Callback = function()
-        local success = TeleportSystem.teleportToCoordinates(coordX, coordY, coordZ, flags['smoothteleport'])
+        local success = safeTeleportCall("teleportToCoordinates", coordX, coordY, coordZ, flags['smoothteleport'])
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
             Content = success and string.format("Teleported to (%d, %d, %d)", coordX, coordY, coordZ) or "Failed to teleport to coordinates",
@@ -628,41 +616,65 @@ TeleportUtilitiesSection:AddButton({
 TeleportUtilitiesSection:AddButton({
     Name = "🧪 Test Teleport Methods",
     Callback = function()
-        local results = TeleportSystem.testConnections()
-        local status = ""
-        for method, available in pairs(results) do
-            status = status .. method .. ": " .. (available and "✅" or "❌") .. "\n"
+        if TeleportSystem and TeleportSystem.testConnections then
+            local results = TeleportSystem.testConnections()
+            local status = ""
+            for method, available in pairs(results) do
+                status = status .. method .. ": " .. (available and "✅" or "❌") .. "\n"
+            end
+            OrionLib:MakeNotification({
+                Name = "🧪 Teleport Test Results",
+                Content = status,
+                Time = 5
+            })
+        else
+            OrionLib:MakeNotification({
+                Name = "❌ Test Failed",
+                Content = "TeleportSystem not available",
+                Time = 3
+            })
         end
-        OrionLib:MakeNotification({
-            Name = "🧪 Teleport Test Results",
-            Content = status,
-            Time = 5
-        })
     end    
 })
 
 TeleportUtilitiesSection:AddButton({
     Name = "📊 Show Teleport Stats",
     Callback = function()
-        local stats = TeleportSystem.getStatistics()
-        OrionLib:MakeNotification({
-            Name = "📊 Teleport Statistics",
-            Content = string.format("Total: %d | Success: %d (%.1f%%) | Favorite: %s", 
-                stats.totalTeleports, stats.successfulTeleports, stats.successRate, stats.favoriteLocation),
-            Time = 5
-        })
+        if TeleportSystem and TeleportSystem.getStatistics then
+            local stats = TeleportSystem.getStatistics()
+            OrionLib:MakeNotification({
+                Name = "📊 Teleport Statistics",
+                Content = string.format("Total: %d | Success: %d (%.1f%%) | Favorite: %s", 
+                    stats.totalTeleports, stats.successfulTeleports, stats.successRate, stats.favoriteLocation),
+                Time = 5
+            })
+        else
+            OrionLib:MakeNotification({
+                Name = "❌ Stats Failed",
+                Content = "TeleportSystem not available",
+                Time = 3
+            })
+        end
     end    
 })
 
 TeleportUtilitiesSection:AddButton({
     Name = "🔄 Reset Teleport Stats",
     Callback = function()
-        TeleportSystem.resetStatistics()
-        OrionLib:MakeNotification({
-            Name = "🔄 Statistics Reset",
-            Content = "All teleport statistics have been reset.",
-            Time = 3
-        })
+        if TeleportSystem and TeleportSystem.resetStatistics then
+            TeleportSystem.resetStatistics()
+            OrionLib:MakeNotification({
+                Name = "🔄 Statistics Reset",
+                Content = "All teleport statistics have been reset.",
+                Time = 3
+            })
+        else
+            OrionLib:MakeNotification({
+                Name = "❌ Reset Failed",
+                Content = "TeleportSystem not available",
+                Time = 3
+            })
+        end
     end    
 })
 
