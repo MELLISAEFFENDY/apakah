@@ -21,10 +21,13 @@ local connections = {}
 
 --// Load UI Library
 local OrionLib
-if readfile and isfile and isfile('ui.lua') then
+if readfile and isfile and isfile('simple-ui.lua') then
+    OrionLib = loadstring(readfile('simple-ui.lua'))()
+elseif readfile and isfile and isfile('ui.lua') then
     OrionLib = loadstring(readfile('ui.lua'))()
 else
-    OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
+    -- Fallback: Load our custom UI library from GitHub
+    OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/simple-ui.lua'))()
 end
 
 --// Utility Functions

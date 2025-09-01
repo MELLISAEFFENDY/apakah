@@ -15,10 +15,12 @@ A comprehensive auto fishing script for Roblox Fisch game with advanced features
 - **Always Catch** - Never miss a fish catch
 
 ### 🎨 User Interface
-- Clean and modern UI using OrionLib
+- Custom-built Simple UI Library (lightweight alternative to OrionLib)
+- Clean and modern dark theme design
 - Save/Load configurations
 - Easy toggle controls
 - Real-time status indicators
+- Draggable windows with smooth animations
 
 ## 🚀 Installation
 
@@ -28,7 +30,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/MELLISAEFFENDY/apakah
 ```
 
 ### Method 2: Local File
-1. Download `auto-fishing.lua` and `ui.lua`
+1. Download `auto-fishing.lua` and `simple-ui.lua`
 2. Place them in your executor's workspace
 3. Execute `auto-fishing.lua`
 
@@ -100,7 +102,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Credits
 
-- OrionLib UI Library
+- Custom Simple UI Library (created as OrionLib replacement)
 - Roblox Fisch community
 - Script contributors
 

@@ -22,13 +22,26 @@ local function loadScript()
         warn("❌ Failed to download script: " .. tostring(result))
         warn("🔄 Trying to load local file...")
         
-        -- Fallback to local file if available
-        if readfile and isfile and isfile('auto-fishing.lua') then
-            local localScript = readfile('auto-fishing.lua')
-            loadstring(localScript)()
-            print("🎣 Auto Fishing Pro loaded from local file!")
+        -- Fallback to local files if available
+        if readfile and isfile then
+            if isfile('auto-fishing.lua') then
+                local localScript = readfile('auto-fishing.lua')
+                loadstring(localScript)()
+                print("🎣 Auto Fishing Pro loaded from local file!")
+            elseif isfile('simple-ui.lua') then
+                -- Load UI library first, then show error message
+                local ui = loadstring(readfile('simple-ui.lua'))()
+                local window = ui:MakeWindow({Name = "⚠️ Auto Fishing Pro - Error"})
+                ui:MakeNotification({
+                    Name = "Error",
+                    Content = "Main script not found. Please download auto-fishing.lua",
+                    Time = 10
+                })
+            else
+                warn("❌ No local files found. Please check your connection or download the script manually.")
+            end
         else
-            warn("❌ No local file found. Please check your connection or download the script manually.")
+            warn("❌ Executor doesn't support file operations.")
         end
     end
 end
