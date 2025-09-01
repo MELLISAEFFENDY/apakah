@@ -468,61 +468,188 @@ function UtilitySystem.setFastFPS(enabled)
     fastFPSEnabled = enabled
     
     if enabled then
-        -- Optimize rendering for maximum FPS
+        -- Advanced FPS optimization based on improved algorithm
+        local lighting = game:GetService("Lighting")
+        local materialService = game:GetService("MaterialService")
         local runService = game:GetService("RunService")
+        local players = game:GetService("Players")
+        local localPlayer = players.LocalPlayer
         
-        -- Disable unnecessary services
-        runService:Set3dRenderingEnabled(false)
+        -- Store original settings for restoration
+        UtilitySystem._originalFPSSettings = {
+            qualityLevel = settings().Rendering.QualityLevel,
+            meshPartDetail = settings().Rendering.MeshPartDetailLevel,
+            globalShadows = lighting.GlobalShadows,
+            fogEnd = lighting.FogEnd,
+            shadowSoftness = lighting.ShadowSoftness
+        }
         
-        -- Reduce quality settings
-        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-        settings().Rendering.EagerBulkExecution = true
+        -- Apply safe FPS optimizations
+        pcall(function()
+            -- Rendering optimizations
+            settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+            settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level04
+            
+            -- Lighting optimizations
+            lighting.GlobalShadows = false
+            lighting.FogEnd = 9e9
+            lighting.ShadowSoftness = 0
+            
+            -- Terrain water optimization
+            if workspace:FindFirstChildOfClass("Terrain") then
+                local terrain = workspace:FindFirstChildOfClass("Terrain")
+                terrain.WaterWaveSize = 0
+                terrain.WaterWaveSpeed = 0
+                terrain.WaterReflectance = 0
+                terrain.WaterTransparency = 0
+                
+                if sethiddenproperty then
+                    sethiddenproperty(terrain, "Decoration", false)
+                    sethiddenproperty(lighting, "Technology", 2)
+                end
+            end
+            
+            -- Material optimization
+            for _, material in pairs(materialService:GetChildren()) do
+                if material:IsA("MaterialVariant") then
+                    material:Destroy()
+                end
+            end
+            materialService.Use2022Materials = false
+            
+            -- FPS uncapping
+            if setfpscap then
+                setfpscap(240) -- Set to 240 FPS cap for stability
+            end
+        end)
         
-        -- Optimize rendering without making everything invisible
-        connections.fastFPS = RunService.Heartbeat:Connect(function()
-            for _, obj in pairs(workspace:GetDescendants()) do
-                if obj:IsA("BasePart") and obj.Parent ~= character then
-                    -- Only optimize distant objects, not make them invisible
-                    if (character.HumanoidRootPart.Position - obj.Position).Magnitude > 200 then
-                        obj.CastShadow = false
-                        if obj.Material == Enum.Material.Neon then
-                            obj.Material = Enum.Material.SmoothPlastic
-                        end
+        -- Smart object optimization (safe version)
+        local function optimizeInstance(instance)
+            pcall(function()
+                if instance:IsA("BasePart") and not instance:IsA("MeshPart") then
+                    -- Optimize regular parts
+                    instance.Material = Enum.Material.Plastic
+                    instance.Reflectance = 0
+                    instance.CastShadow = false
+                elseif instance:IsA("MeshPart") then
+                    -- Optimize MeshParts safely
+                    instance.RenderFidelity = Enum.RenderFidelity.Performance
+                    instance.Material = Enum.Material.Plastic
+                    instance.Reflectance = 0
+                    instance.CastShadow = false
+                elseif instance:IsA("Model") then
+                    -- Lower model detail
+                    instance.LevelOfDetail = Enum.ModelLevelOfDetail.Disabled
+                elseif instance:IsA("ParticleEmitter") or instance:IsA("Trail") or instance:IsA("Beam") then
+                    -- Disable particles and effects
+                    instance.Enabled = false
+                elseif instance:IsA("Fire") or instance:IsA("Smoke") or instance:IsA("Sparkles") then
+                    -- Disable environmental effects
+                    instance.Enabled = false
+                elseif instance:IsA("PostEffect") then
+                    -- Disable camera effects
+                    instance.Enabled = false
+                elseif instance:IsA("Explosion") then
+                    -- Remove explosions
+                    instance:Destroy()
+                elseif instance:IsA("Clothing") or instance:IsA("SurfaceAppearance") then
+                    -- Remove clothing for performance
+                    instance:Destroy()
+                elseif instance:IsA("Decal") or instance:IsA("Texture") then
+                    -- Make textures invisible but don't destroy
+                    instance.Transparency = 0.9
+                end
+            end)
+        end
+        
+        -- Apply optimizations to existing objects
+        spawn(function()
+            local descendants = workspace:GetDescendants()
+            local waitPerAmount = 500
+            local currentWait = waitPerAmount
+            
+            for i, instance in pairs(descendants) do
+                -- Skip player characters to avoid issues
+                local isPlayerCharacter = false
+                for _, player in pairs(players:GetPlayers()) do
+                    if player.Character and instance:IsDescendantOf(player.Character) then
+                        isPlayerCharacter = true
+                        break
                     end
-                elseif obj:IsA("ParticleEmitter") then
-                    obj.Enabled = false
-                elseif obj:IsA("Beam") or obj:IsA("Trail") then
-                    obj.Enabled = false
-                elseif obj:IsA("Explosion") then
-                    obj:Destroy()
+                end
+                
+                if not isPlayerCharacter then
+                    optimizeInstance(instance)
+                end
+                
+                -- Yield periodically to prevent lag
+                if i == currentWait then
+                    task.wait()
+                    currentWait = currentWait + waitPerAmount
                 end
             end
         end)
         
-        print("⚡ Fast FPS: ENABLED - Maximum FPS optimization!")
+        -- Monitor new objects
+        connections.fastFPS = workspace.DescendantAdded:Connect(function(instance)
+            task.wait(0.1) -- Small delay to let object settle
+            
+            -- Skip player characters
+            local isPlayerCharacter = false
+            for _, player in pairs(players:GetPlayers()) do
+                if player.Character and instance:IsDescendantOf(player.Character) then
+                    isPlayerCharacter = true
+                    break
+                end
+            end
+            
+            if not isPlayerCharacter then
+                optimizeInstance(instance)
+            end
+        end)
+        
+        print("⚡ Fast FPS: ENABLED - Advanced optimization loaded!")
     else
         if connections.fastFPS then
             connections.fastFPS:Disconnect()
             connections.fastFPS = nil
         end
         
-        -- Restore rendering
-        local runService = game:GetService("RunService")
-        runService:Set3dRenderingEnabled(true)
-        
-        -- Restore quality
-        settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
-        
-        -- Restore visibility
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj:IsA("BasePart") then
-                obj.Transparency = 0
-                obj.CanCollide = true
-            elseif obj:IsA("Decal") or obj:IsA("Texture") then
-                obj.Transparency = 0
-            elseif obj:IsA("SurfaceGui") or obj:IsA("BillboardGui") then
-                obj.Enabled = true
-            end
+        -- Restore original settings
+        if UtilitySystem._originalFPSSettings then
+            local original = UtilitySystem._originalFPSSettings
+            
+            pcall(function()
+                -- Restore rendering settings
+                settings().Rendering.QualityLevel = original.qualityLevel or Enum.QualityLevel.Automatic
+                settings().Rendering.MeshPartDetailLevel = original.meshPartDetail or Enum.MeshPartDetailLevel.DistanceBased
+                
+                -- Restore lighting
+                local lighting = game:GetService("Lighting")
+                lighting.GlobalShadows = original.globalShadows ~= nil and original.globalShadows or true
+                lighting.FogEnd = original.fogEnd or 100000
+                lighting.ShadowSoftness = original.shadowSoftness or 0.2
+                
+                -- Restore terrain water if possible
+                if workspace:FindFirstChildOfClass("Terrain") then
+                    local terrain = workspace:FindFirstChildOfClass("Terrain")
+                    terrain.WaterWaveSize = 0.05
+                    terrain.WaterWaveSpeed = 10
+                    terrain.WaterReflectance = 1
+                    terrain.WaterTransparency = 0.3
+                end
+                
+                -- Re-enable materials
+                local materialService = game:GetService("MaterialService")
+                materialService.Use2022Materials = true
+                
+                -- Remove FPS cap
+                if setfpscap then
+                    setfpscap(0) -- Remove FPS cap
+                end
+            end)
+            
+            UtilitySystem._originalFPSSettings = nil
         end
         
         print("⚡ Fast FPS: DISABLED")
