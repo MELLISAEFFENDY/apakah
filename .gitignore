@@ -1,0 +1,43 @@
+# Roblox Script Files
+*.rbxl
+*.rbxlx
+*.rbxm
+
+# Configuration Files
+AutoFishingPro/
+config/
+settings/
+
+# Logs
+*.log
+logs/
+
+# Temporary Files
+*.tmp
+*.temp
+temp/
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backup Files
+*.bak
+*.backup
+backup/
+
+# Test Files
+test/
+tests/
+testing/
