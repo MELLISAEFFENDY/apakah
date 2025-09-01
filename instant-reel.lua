@@ -308,12 +308,6 @@ function InstantReel.performReel()
         return InstantReel.directInstantReel()
     end
 end
-    elseif settings.fastMode then
-        return InstantReel.fastReel()
-    else
-        return InstantReel.safeSequenceReel()
-    end
-end
 
 --// Configuration Functions
 function InstantReel.setEnabled(enabled)

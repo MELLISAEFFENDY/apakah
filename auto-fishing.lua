@@ -44,30 +44,48 @@ end
 
 --// Load Instant Reel Module
 local InstantReel
+local instantReelLoaded = false
 pcall(function()
     if readfile and isfile and isfile('instant-reel.lua') then
-        InstantReel = loadstring(readfile('instant-reel.lua'))()
+        local instantReelCode = readfile('instant-reel.lua')
+        InstantReel = loadstring(instantReelCode)()
+        instantReelLoaded = true
+        print("📁 InstantReel: Loaded from local file")
     else
         -- Fallback: Load from GitHub
         InstantReel = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/instant-reel.lua'))()
+        instantReelLoaded = true
+        print("🌐 InstantReel: Loaded from GitHub")
     end
 end)
 
 --// Load Teleport System
 local TeleportSystem
+local teleportLoaded = false
 pcall(function()
     if readfile and isfile and isfile('teleport.lua') then
-        TeleportSystem = loadstring(readfile('teleport.lua'))()
+        local teleportCode = readfile('teleport.lua')
+        TeleportSystem = loadstring(teleportCode)()
+        teleportLoaded = true
+        print("📁 TeleportSystem: Loaded from local file")
     else
         -- Fallback: Load from GitHub
         TeleportSystem = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/teleport.lua'))()
+        teleportLoaded = true
+        print("🌐 TeleportSystem: Loaded from GitHub")
     end
 end)
 
--- Initialize modules safely
-if InstantReel and InstantReel.init then
-    InstantReel = InstantReel.init()
-    print("✅ InstantReel module initialized successfully")
+-- Initialize InstantReel safely
+if instantReelLoaded and InstantReel then
+    if type(InstantReel) == "table" and InstantReel.init then
+        InstantReel = InstantReel.init()
+        print("✅ InstantReel module initialized successfully")
+    elseif type(InstantReel) == "table" then
+        print("✅ InstantReel module loaded successfully (no init required)")
+    else
+        warn("⚠️ InstantReel module loaded but not a table")
+    end
 else
     warn("⚠️ InstantReel module not loaded or init function not available")
     -- Create fallback InstantReel object
@@ -84,9 +102,21 @@ else
 end
 
 -- Initialize Teleport System safely
-if TeleportSystem and TeleportSystem.init then
-    TeleportSystem = TeleportSystem.init()
-    print("✅ TeleportSystem initialized successfully")
+if teleportLoaded and TeleportSystem then
+    if type(TeleportSystem) == "table" and TeleportSystem.init then
+        local success, result = pcall(function()
+            return TeleportSystem.init()
+        end)
+        if success then
+            print("✅ TeleportSystem initialized successfully")
+        else
+            warn("⚠️ TeleportSystem init failed: " .. tostring(result))
+        end
+    elseif type(TeleportSystem) == "table" then
+        print("✅ TeleportSystem loaded successfully (no init required)")
+    else
+        warn("⚠️ TeleportSystem loaded but not a table")
+    end
 else
     warn("⚠️ TeleportSystem not loaded properly or init function not available")
     -- Create fallback TeleportSystem object

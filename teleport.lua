@@ -183,7 +183,12 @@ end
 function TeleportSystem.getPlaceNames()
     local names = {}
     for name, _ in pairs(TeleportSystem.teleportSpots) do
-        table.insert(names, name:gsub("_", " "):gsub("^%l", string.upper))
+        local formattedName = name:gsub("_", " ")
+        -- Capitalize first letter of each word
+        formattedName = formattedName:gsub("(%a)([%w_']*)", function(first, rest)
+            return first:upper() .. rest:lower()
+        end)
+        table.insert(names, formattedName)
     end
     table.sort(names)
     return names
@@ -192,7 +197,12 @@ end
 function TeleportSystem.getFishAreaNames()
     local names = {}
     for name, _ in pairs(TeleportSystem.fishAreas) do
-        table.insert(names, name:gsub("_", " "):gsub("^%l", string.upper))
+        local formattedName = name:gsub("_", " ")
+        -- Capitalize first letter of each word
+        formattedName = formattedName:gsub("(%a)([%w_']*)", function(first, rest)
+            return first:upper() .. rest:lower()
+        end)
+        table.insert(names, formattedName)
     end
     table.sort(names)
     return names
@@ -201,7 +211,12 @@ end
 function TeleportSystem.getNPCNames()
     local names = {}
     for name, _ in pairs(TeleportSystem.npcLocations) do
-        table.insert(names, name:gsub("_", " "):gsub("^%l", string.upper))
+        local formattedName = name:gsub("_", " ")
+        -- Capitalize first letter of each word
+        formattedName = formattedName:gsub("(%a)([%w_']*)", function(first, rest)
+            return first:upper() .. rest:lower()
+        end)
+        table.insert(names, formattedName)
     end
     table.sort(names)
     return names
@@ -210,7 +225,12 @@ end
 function TeleportSystem.getItemNames()
     local names = {}
     for name, _ in pairs(TeleportSystem.itemLocations) do
-        table.insert(names, name:gsub("_", " "):gsub("^%l", string.upper))
+        local formattedName = name:gsub("_", " ")
+        -- Capitalize first letter of each word
+        formattedName = formattedName:gsub("(%a)([%w_']*)", function(first, rest)
+            return first:upper() .. rest:lower()
+        end)
+        table.insert(names, formattedName)
     end
     table.sort(names)
     return names
