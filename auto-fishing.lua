@@ -2321,6 +2321,184 @@ AutoShakeTestSection:AddLabel("🔥 Events: 5-8 events fired per shake")
 AutoShakeTestSection:AddLabel("💨 Frequency: Up to 200 shakes/second")
 AutoShakeTestSection:AddLabel("👻 Visibility: 100% Invisible")
 
+--// Exit Tab
+local ExitTab = Window:MakeTab({
+    Name = "🚪 Exit",
+    Icon = "rbxassetid://4483345875",
+    PremiumOnly = false
+})
+
+local ExitSection = ExitTab:AddSection({
+    Name = "🔴 Script Control"
+})
+
+ExitSection:AddLabel("⚠️ Warning: These actions will stop and close the script")
+
+ExitSection:AddButton({
+    Name = "🛑 Stop All Functions",
+    Callback = function()
+        OrionLib:MakeNotification({
+            Name = "🛑 Stopping Script",
+            Content = "Disabling all automatic functions...",
+            Time = 3
+        })
+        
+        -- Disable all flags
+        flags['autoshake'] = false
+        flags['autoshakev2'] = false
+        flags['autocast'] = false
+        flags['autocatch'] = false
+        flags['instantreel'] = false
+        flags['autoreel'] = false
+        flags['autodrop'] = false
+        flags['freezechar'] = false
+        flags['autoquest'] = false
+        flags['autosell'] = false
+        flags['autotreasure'] = false
+        flags['autocrates'] = false
+        flags['autoeggs'] = false
+        
+        -- Stop all connections
+        for name, connection in pairs(connections) do
+            if connection then
+                connection:Disconnect()
+                connections[name] = nil
+            end
+        end
+        
+        OrionLib:MakeNotification({
+            Name = "✅ Script Stopped",
+            Content = "All automatic functions have been disabled",
+            Time = 3
+        })
+        
+        print("🛑 AUTO FISHING SCRIPT - ALL FUNCTIONS STOPPED")
+    end    
+})
+
+ExitSection:AddButton({
+    Name = "🗑️ Destroy GUI Only",
+    Callback = function()
+        OrionLib:MakeNotification({
+            Name = "🗑️ Closing GUI",
+            Content = "Closing script interface... Functions will continue running in background",
+            Time = 3
+        })
+        wait(1)
+        OrionLib:Destroy()
+    end    
+})
+
+ExitSection:AddButton({
+    Name = "🚪 Complete Exit",
+    Callback = function()
+        OrionLib:MakeNotification({
+            Name = "🚪 Complete Exit",
+            Content = "Stopping all functions and closing script...",
+            Time = 2
+        })
+        
+        -- Disable all flags
+        flags['autoshake'] = false
+        flags['autoshakev2'] = false
+        flags['autocast'] = false
+        flags['autocatch'] = false
+        flags['instantreel'] = false
+        flags['autoreel'] = false
+        flags['autodrop'] = false
+        flags['freezechar'] = false
+        flags['autoquest'] = false
+        flags['autosell'] = false
+        flags['autotreasure'] = false
+        flags['autocrates'] = false
+        flags['autoeggs'] = false
+        
+        -- Stop all connections
+        for name, connection in pairs(connections) do
+            if connection then
+                connection:Disconnect()
+                connections[name] = nil
+            end
+        end
+        
+        print("🚪 AUTO FISHING SCRIPT - COMPLETE EXIT")
+        print("✅ All functions stopped")
+        print("✅ All connections disconnected")
+        print("✅ Script terminated successfully")
+        
+        wait(1)
+        OrionLib:Destroy()
+    end    
+})
+
+local EmergencySection = ExitTab:AddSection({
+    Name = "🆘 Emergency Controls"
+})
+
+EmergencySection:AddButton({
+    Name = "🆘 Emergency Stop",
+    Callback = function()
+        -- Immediate force stop
+        for name, connection in pairs(connections) do
+            if connection then
+                pcall(function()
+                    connection:Disconnect()
+                end)
+                connections[name] = nil
+            end
+        end
+        
+        -- Clear all flags immediately
+        flags = {}
+        
+        OrionLib:MakeNotification({
+            Name = "🆘 Emergency Stop",
+            Content = "EMERGENCY STOP ACTIVATED - All functions forcibly terminated",
+            Time = 3
+        })
+        
+        print("🆘 EMERGENCY STOP ACTIVATED")
+        print("🔴 All connections forcibly disconnected")
+        print("🔴 All flags cleared")
+    end    
+})
+
+EmergencySection:AddButton({
+    Name = "🔄 Force Restart Script",
+    Callback = function()
+        OrionLib:MakeNotification({
+            Name = "🔄 Restarting Script",
+            Content = "Force restarting the script...",
+            Time = 2
+        })
+        
+        -- Stop everything first
+        for name, connection in pairs(connections) do
+            if connection then
+                pcall(function()
+                    connection:Disconnect()
+                end)
+            end
+        end
+        
+        OrionLib:Destroy()
+        wait(1)
+        
+        -- Reload the script
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/auto-fishing.lua"))()
+    end    
+})
+
+local InfoExitSection = ExitTab:AddSection({
+    Name = "ℹ️ Exit Information"
+})
+
+InfoExitSection:AddLabel("🛑 Stop All Functions: Disables automation but keeps GUI")
+InfoExitSection:AddLabel("🗑️ Destroy GUI Only: Closes interface, functions continue")
+InfoExitSection:AddLabel("🚪 Complete Exit: Stops everything and closes script")
+InfoExitSection:AddLabel("🆘 Emergency Stop: Force stops all functions immediately")
+InfoExitSection:AddLabel("🔄 Force Restart: Completely restarts the script")
+
 --// Main Loop
 connections.mainLoop = RunService.Heartbeat:Connect(function()
     pcall(function()
