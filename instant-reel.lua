@@ -56,6 +56,36 @@ local function randomDelay()
     return settings.minDelay
 end
 
+-- Function to instantly remove minigame UI
+local function removeMinigameUI()
+    pcall(function()
+        local reelUI = lp.PlayerGui:FindFirstChild('reel')
+        if reelUI then
+            reelUI:Destroy()
+        end
+        
+        local shakeUI = lp.PlayerGui:FindFirstChild('shakeui')
+        if shakeUI then
+            shakeUI:Destroy()
+        end
+    end)
+end
+
+-- Function to prevent minigame UI from appearing
+local function preventMinigameUI()
+    spawn(function()
+        local connection
+        connection = lp.PlayerGui.ChildAdded:Connect(function(child)
+            if child.Name == 'reel' or child.Name == 'shakeui' then
+                child:Destroy()
+            end
+        end)
+        
+        wait(2) -- Monitor for 2 seconds
+        connection:Disconnect()
+    end)
+end
+
 local function logReel(success, time)
     statistics.totalReels = statistics.totalReels + 1
     if success then
@@ -115,22 +145,39 @@ end
 
 --// Core Instant Reel Functions
 
--- Method 1: Direct Instant Reel
+-- Method 1: Ultra Instant Reel (No Minigame)
 function InstantReel.directInstantReel()
     local rod = findRod()
     if not rod or not rod.values then return false end
     
     local startTime = tick()
     
-    pcall(function()
-        if rod.values.lure.Value > 0 then
-            -- Direct finish without delay
-            ReplicatedStorage.events.reelfinished:FireServer(100, true)
-            updateReelPattern()
-            logReel(true, tick() - startTime)
-            return true
-        end
-    end)
+    -- Instantly complete when any lure value is detected
+    if rod.values.lure.Value >= 1 then
+        -- Prevent minigame UI from appearing
+        preventMinigameUI()
+        
+        spawn(function()
+            pcall(function()
+                -- Remove any existing minigame UI
+                removeMinigameUI()
+                
+                -- Immediately fire reelfinished to bypass minigame
+                ReplicatedStorage.events.reelfinished:FireServer(100, true)
+                wait(0.001)
+                ReplicatedStorage.events.reelfinished:FireServer(100, true)
+                wait(0.001)
+                ReplicatedStorage.events.reelfinished:FireServer(100, true)
+                
+                -- Clean up any UI that might have appeared
+                removeMinigameUI()
+                
+                updateReelPattern()
+                logReel(true, tick() - startTime)
+            end)
+        end)
+        return true
+    end
     
     return false
 end
@@ -214,6 +261,40 @@ end
 function InstantReel.performReel()
     if not settings.enabled then return false end
     
+    local rod = findRod()
+    if not rod or not rod.values then return false end
+    
+    -- Ultra instant mode - completely bypass minigame
+    if settings.instantMode then
+        if rod.values.lure.Value >= 1 then
+            -- Prevent any minigame UI from appearing
+            preventMinigameUI()
+            
+            spawn(function()
+                pcall(function()
+                    -- Immediately remove any existing UI
+                    removeMinigameUI()
+                    
+                    -- Fire multiple times to ensure success and bypass any UI
+                    ReplicatedStorage.events.reelfinished:FireServer(100, true)
+                    wait(0.001)
+                    ReplicatedStorage.events.reelfinished:FireServer(100, true)
+                    wait(0.001)
+                    ReplicatedStorage.events.reelfinished:FireServer(100, true)
+                    
+                    -- Final cleanup
+                    removeMinigameUI()
+                    
+                    updateReelPattern()
+                    statistics.totalReels = statistics.totalReels + 1
+                    statistics.successfulReels = statistics.successfulReels + 1
+                end)
+            end)
+            return true
+        end
+        return false
+    end
+    
     -- Check for suspicious patterns and adjust behavior
     if settings.detectionAvoidance and isPatternSuspicious() then
         -- Use safer method when pattern is suspicious
@@ -221,8 +302,12 @@ function InstantReel.performReel()
     end
     
     -- Choose reel method based on settings
-    if settings.instantMode then
+    if settings.fastMode then
+        return InstantReel.fastReel()
+    else
         return InstantReel.directInstantReel()
+    end
+end
     elseif settings.fastMode then
         return InstantReel.fastReel()
     else

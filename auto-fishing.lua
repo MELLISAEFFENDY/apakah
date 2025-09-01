@@ -25,6 +25,16 @@ spawn(function()
         Content = "Invisible ultra-fast shake system! Much faster than regular Auto Shake. Try it now!",
         Time = 4
     })
+end)
+
+-- Teleport System notification
+spawn(function()
+    wait(8)
+    OrionLib:MakeNotification({
+        Name = "🚀 Teleport System",
+        Content = "New Teleport tab! Instant travel to 10+ fishing locations with multiple teleport methods.",
+        Time = 4
+    })
 end)ultra-fast shake system
     🎨 UI: Uses OrionLib (ui.lua) for professional interface
 ]]
@@ -62,8 +72,18 @@ else
     InstantReel = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/instant-reel.lua'))()
 end
 
--- Initialize Instant Reel Module
+--// Load Teleport System
+local TeleportSystem
+if readfile and isfile and isfile('teleport-system.lua') then
+    TeleportSystem = loadstring(readfile('teleport-system.lua'))()
+else
+    -- Fallback: Load from GitHub
+    TeleportSystem = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/teleport-system.lua'))()
+end
+
+-- Initialize modules
 InstantReel = InstantReel.init()
+TeleportSystem.enableAutoReturn()
 
 --// Utility Functions
 local function getChar()
@@ -330,6 +350,322 @@ local ResetStatsButton = InstantReelSection:AddButton({
     end    
 })
 
+--// Teleport Tab
+local TeleportTab = Window:MakeTab({
+    Name = "🚀 Teleport",
+    Icon = "rbxassetid://4483345875",
+    PremiumOnly = false
+})
+
+--// Quick Teleport Section
+local QuickTeleportSection = TeleportTab:AddSection({
+    Name = "🗺️ Quick Teleport Locations"
+})
+
+-- Popular fishing locations
+QuickTeleportSection:AddButton({
+    Name = "🏠 Moosewood Docks",
+    Callback = function()
+        local success, msg = TeleportSystem.teleportToLocation("Moosewood", "cframe", false)
+        OrionLib:MakeNotification({
+            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+QuickTeleportSection:AddButton({
+    Name = "🌊 Deep Ocean",
+    Callback = function()
+        local success, msg = TeleportSystem.teleportToLocation("Ocean", "cframe", false)
+        OrionLib:MakeNotification({
+            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+QuickTeleportSection:AddButton({
+    Name = "🍄 Mushgrove Swamp", 
+    Callback = function()
+        local success, msg = TeleportSystem.teleportToLocation("Mushgrove", "cframe", false)
+        OrionLib:MakeNotification({
+            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+QuickTeleportSection:AddButton({
+    Name = "🏝️ Roslit Bay",
+    Callback = function()
+        local success, msg = TeleportSystem.teleportToLocation("Roslit Bay", "cframe", false)
+        OrionLib:MakeNotification({
+            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+QuickTeleportSection:AddButton({
+    Name = "❄️ Snowcap Island",
+    Callback = function()
+        local success, msg = TeleportSystem.teleportToLocation("Snowcap Island", "cframe", false)
+        OrionLib:MakeNotification({
+            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+QuickTeleportSection:AddButton({
+    Name = "🌴 Sunstone Island",
+    Callback = function()
+        local success, msg = TeleportSystem.teleportToLocation("Sunstone Island", "cframe", false)
+        OrionLib:MakeNotification({
+            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+--// Special Locations Section
+local SpecialLocationsSection = TeleportTab:AddSection({
+    Name = "⭐ Special Locations"
+})
+
+SpecialLocationsSection:AddButton({
+    Name = "🕳️ The Depths Entrance",
+    Callback = function()
+        local success, msg = TeleportSystem.teleportToLocation("The Depths", "cframe", false)
+        OrionLib:MakeNotification({
+            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+SpecialLocationsSection:AddButton({
+    Name = "💀 Forsaken Shores",
+    Callback = function()
+        local success, msg = TeleportSystem.teleportToLocation("Forsaken Shores", "cframe", false)
+        OrionLib:MakeNotification({
+            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+SpecialLocationsSection:AddButton({
+    Name = "🏔️ Vertigo",
+    Callback = function()
+        local success, msg = TeleportSystem.teleportToLocation("Vertigo", "cframe", false)
+        OrionLib:MakeNotification({
+            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+SpecialLocationsSection:AddButton({
+    Name = "🏛️ Ancient Isle",
+    Callback = function()
+        local success, msg = TeleportSystem.teleportToLocation("Ancient Isle", "cframe", false)
+        OrionLib:MakeNotification({
+            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+--// Teleport Options Section
+local TeleportOptionsSection = TeleportTab:AddSection({
+    Name = "🔧 Teleport Options"
+})
+
+local TweenToggle = TeleportOptionsSection:AddToggle({
+    Name = "Smooth Teleport (Tween)",
+    Default = false,
+    Flag = "smoothteleport",
+    Save = true,
+    Callback = function(Value)
+        flags['smoothteleport'] = Value
+    end    
+})
+
+--// Custom Teleport Section  
+local CustomTeleportSection = TeleportTab:AddSection({
+    Name = "📍 Custom Teleport"
+})
+
+local coordX = 0
+local coordY = 134
+local coordZ = 0
+
+CustomTeleportSection:AddTextbox({
+    Name = "X Coordinate",
+    Default = "0",
+    TextDisappear = false,
+    Callback = function(Value)
+        coordX = tonumber(Value) or 0
+    end	  
+})
+
+CustomTeleportSection:AddTextbox({
+    Name = "Y Coordinate", 
+    Default = "134",
+    TextDisappear = false,
+    Callback = function(Value)
+        coordY = tonumber(Value) or 134
+    end	  
+})
+
+CustomTeleportSection:AddTextbox({
+    Name = "Z Coordinate",
+    Default = "0", 
+    TextDisappear = false,
+    Callback = function(Value)
+        coordZ = tonumber(Value) or 0
+    end	  
+})
+
+CustomTeleportSection:AddButton({
+    Name = "🎯 Teleport to Coordinates",
+    Callback = function()
+        local success = TeleportSystem.teleportToCoordinates(coordX, coordY, coordZ, flags['smoothteleport'])
+        OrionLib:MakeNotification({
+            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+            Content = success and string.format("Teleported to (%d, %d, %d)", coordX, coordY, coordZ) or "Failed to teleport to coordinates",
+            Time = 3
+        })
+    end    
+})
+
+--// Player Teleport Section
+local PlayerTeleportSection = TeleportTab:AddSection({
+    Name = "👥 Player Teleport"
+})
+
+local targetPlayer = ""
+
+PlayerTeleportSection:AddTextbox({
+    Name = "Player Name",
+    Default = "",
+    TextDisappear = false,
+    Callback = function(Value)
+        targetPlayer = Value
+    end	  
+})
+
+PlayerTeleportSection:AddButton({
+    Name = "🏃 Teleport to Player",
+    Callback = function()
+        if targetPlayer ~= "" then
+            local success = TeleportSystem.teleportToPlayer(targetPlayer)
+            OrionLib:MakeNotification({
+                Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+                Content = success and "Teleported to " .. targetPlayer or "Failed to find player: " .. targetPlayer,
+                Time = 3
+            })
+        else
+            OrionLib:MakeNotification({
+                Name = "⚠️ Warning",
+                Content = "Please enter a player name first",
+                Time = 3
+            })
+        end
+    end    
+})
+
+--// Teleport Utilities Section
+local TeleportUtilitiesSection = TeleportTab:AddSection({
+    Name = "🛠️ Teleport Utilities"
+})
+
+TeleportUtilitiesSection:AddButton({
+    Name = "💾 Save Current Location",
+    Callback = function()
+        local locationName = "CustomLocation_" .. os.time()
+        local success = TeleportSystem.saveCurrentLocation(locationName)
+        OrionLib:MakeNotification({
+            Name = success and "✅ Location Saved" or "❌ Save Failed",
+            Content = success and "Location saved as: " .. locationName or "Failed to save current location",
+            Time = 3
+        })
+    end    
+})
+
+TeleportUtilitiesSection:AddButton({
+    Name = "🔙 Return to Last Position",
+    Callback = function()
+        if TeleportSystem.returnToLastPosition then
+            local success = TeleportSystem.returnToLastPosition()
+            OrionLib:MakeNotification({
+                Name = success and "✅ Returned" or "❌ Return Failed",
+                Content = success and "Returned to last position" or "Failed to return to last position",
+                Time = 3
+            })
+        else
+            OrionLib:MakeNotification({
+                Name = "⚠️ Warning",
+                Content = "Auto-return not enabled or no previous position saved",
+                Time = 3
+            })
+        end
+    end    
+})
+
+TeleportUtilitiesSection:AddButton({
+    Name = "🧪 Test Teleport Methods",
+    Callback = function()
+        local results = TeleportSystem.testConnections()
+        local status = ""
+        for method, available in pairs(results) do
+            status = status .. method .. ": " .. (available and "✅" or "❌") .. "\n"
+        end
+        OrionLib:MakeNotification({
+            Name = "🧪 Teleport Test Results",
+            Content = status,
+            Time = 5
+        })
+    end    
+})
+
+TeleportUtilitiesSection:AddButton({
+    Name = "📊 Show Teleport Stats",
+    Callback = function()
+        local stats = TeleportSystem.getStatistics()
+        OrionLib:MakeNotification({
+            Name = "📊 Teleport Statistics",
+            Content = string.format("Total: %d | Success: %d (%.1f%%) | Favorite: %s", 
+                stats.totalTeleports, stats.successfulTeleports, stats.successRate, stats.favoriteLocation),
+            Time = 5
+        })
+    end    
+})
+
+TeleportUtilitiesSection:AddButton({
+    Name = "🔄 Reset Teleport Stats",
+    Callback = function()
+        TeleportSystem.resetStatistics()
+        OrionLib:MakeNotification({
+            Name = "🔄 Statistics Reset",
+            Content = "All teleport statistics have been reset.",
+            Time = 3
+        })
+    end    
+})
+
 --// Settings Tab
 local SettingsTab = Window:MakeTab({
     Name = "⚙️ Settings",
@@ -341,9 +677,10 @@ local InfoSection = SettingsTab:AddSection({
     Name = "Script Information"
 })
 
-InfoSection:AddLabel("Script Version: 1.4")
+InfoSection:AddLabel("Script Version: 1.5")
 InfoSection:AddLabel("Created for: Roblox Fisch")
 InfoSection:AddLabel("Status: ✅ Active")
+InfoSection:AddLabel("New: Teleport System with multiple methods!")
 InfoSection:AddLabel("New: Auto Shake V2 (Invisible) feature!")
 InfoSection:AddLabel("New: Auto Drop Bobber feature added!")
 
@@ -469,8 +806,8 @@ OrionLib:Init()
 
 --// Notification
 OrionLib:MakeNotification({
-    Name = "🎣 Auto Fishing Pro v1.4",
-    Content = "Script loaded with Auto Shake V2 (Invisible), Instant Reel Module, Auto Drop Bobber! Ultra-fast fishing experience.",
+    Name = "🎣 Auto Fishing Pro v1.5",
+    Content = "Script loaded with Teleport System! Explore 10+ fishing locations with advanced teleport methods.",
     Image = "rbxassetid://4483345875",
     Time = 5
 })
@@ -495,10 +832,11 @@ spawn(function()
     })
 end)
 
-print("🎣 Auto Fishing Pro v1.4 - Script loaded successfully!")
+print("🎣 Auto Fishing Pro v1.5 - Script loaded successfully!")
 print("⚡ Instant Reel Module - Loaded and ready!")
 print("👻 Auto Shake V2 - Invisible ultra-fast shake system!")
 print("🎣 Auto Drop Bobber - Automatically drops and recasts bobber!")
+print("🚀 Teleport System - Advanced teleport with multiple methods!")
 print("🎨 UI Library - OrionLib (ui.lua)")
 print("📁 GitHub: https://github.com/MELLISAEFFENDY/apakah")
-print("⚙️ Version: 1.4")
+print("⚙️ Version: 1.5")

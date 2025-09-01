@@ -27,30 +27,40 @@ local OrionLib = {
 	SaveCfg = false
 }
 
---Feather Icons https://github.com/evoincorp/lucideblox/tree/master/src/modules/util - Created by 7kayoh
+--Feather Icons - Using local fallback icons to prevent HTTP errors
 local Icons = {
-	-- Fallback icons to prevent HTTP 404 errors
+	-- Essential icons for UI functionality
 	["home"] = "rbxassetid://3944694330",
 	["settings"] = "rbxassetid://3944694151",
 	["user"] = "rbxassetid://3944693881",
 	["x"] = "rbxassetid://7072725342",
 	["minus"] = "rbxassetid://7072719338",
 	["plus"] = "rbxassetid://7072720870",
-	["check"] = "rbxassetid://3944703587"
-}
-
--- Try to load icons from GitHub, but don't fail if it's not available
-local Success, Response = pcall(function()
-	local ExternalIcons = HttpService:JSONDecode(game:HttpGetAsync("https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/icons.json")).icons
-	-- Merge external icons with fallback icons
-	for name, icon in pairs(ExternalIcons) do
-		Icons[name] = icon
-	end
-end)
-
-if not Success then
-	warn("\nOrion Library - Using fallback icons due to network error: " .. tostring(Response) .. "\n")
-end	
+	["check"] = "rbxassetid://3944703587",
+	["chevron-right"] = "rbxassetid://3944694466",
+	["chevron-left"] = "rbxassetid://3944694452",
+	["chevron-up"] = "rbxassetid://3944694479",
+	["chevron-down"] = "rbxassetid://3944694439",
+	["edit"] = "rbxassetid://3944694266",
+	["trash"] = "rbxassetid://3944695071",
+	["save"] = "rbxassetid://3944694980",
+	["copy"] = "rbxassetid://3944694136",
+	["eye"] = "rbxassetid://3944694312",
+	["search"] = "rbxassetid://3944694998",
+	["menu"] = "rbxassetid://3944694836",
+	["info"] = "rbxassetid://3944694424",
+	["star"] = "rbxassetid://3944695022",
+	["heart"] = "rbxassetid://3944694383",
+	["play"] = "rbxassetid://3944694934",
+	["pause"] = "rbxassetid://3944694907",
+	["stop"] = "rbxassetid://3944695035",
+	["volume"] = "rbxassetid://3944695158",
+	["lock"] = "rbxassetid://3944694707",
+	["unlock"] = "rbxassetid://3944695119",
+	["download"] = "rbxassetid://3944694253",
+	["upload"] = "rbxassetid://3944695132",
+	["refresh"] = "rbxassetid://3944694967"
+}	
 
 local function GetIcon(IconName)
 	if Icons[IconName] ~= nil then
