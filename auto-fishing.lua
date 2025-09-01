@@ -35,6 +35,37 @@ local connections = {}
 local lastCastTime = 0
 local bobberDropTimer = 0
 
+-- Console spam reduction
+local _oldWarn = warn
+local _oldPrint = print
+local suppressedMessages = {
+    "Something unexpectedly tried to set the parent",
+    "Current parent is PlayerGui",
+    "NULL while trying to set the parent",
+    "reel to NULL",
+    "shakeui to NULL"
+}
+
+local function shouldSuppressMessage(message)
+    for _, pattern in pairs(suppressedMessages) do
+        if string.find(message, pattern) then
+            return true
+        end
+    end
+    return false
+end
+
+-- Override warn to reduce spam
+warn = function(...)
+    local message = tostring(...)
+    if not shouldSuppressMessage(message) then
+        _oldWarn(...)
+    end
+end
+
+-- Keep print normal for our script messages
+print = _oldPrint
+
 --// New Feature Variables
 local autoSellEnabled = false
 local autoQuestEnabled = false
@@ -573,105 +604,80 @@ local function performInstantShake()
     
     local startTime = tick()
     local success = false
-    local eventsFired = 0
     
-    -- Method 1: Ultra-aggressive event firing (10x for maximum speed)
+    -- Method 1: Safe rod event firing
     pcall(function()
         if rod.events and rod.events:FindFirstChild('shake') then
-            for i = 1, 10 do
-                rod.events.shake:FireServer(100, true)
-                rod.events.shake:FireServer(99, true)  -- Extra firing with different values
-                eventsFired = eventsFired + 2
-                success = true
-            end
+            -- Fire with reasonable values (not excessive)
+            rod.events.shake:FireServer(100, true)
+            success = true
         end
     end)
     
-    -- Method 2: ReplicatedStorage events (ultra-aggressive)
+    -- Method 2: ReplicatedStorage events (reduced spam)
     pcall(function()
         if ReplicatedStorage.events then
             local events = ReplicatedStorage.events
-            -- Fire each event multiple times instantly
+            
+            -- Try each shake event once
             if events:FindFirstChild('shakeCompleted') then
-                for i = 1, 5 do
-                    events.shakeCompleted:FireServer(100, true)
-                    events.shakeCompleted:FireServer(99, true)
-                end
-                eventsFired = eventsFired + 10
+                events.shakeCompleted:FireServer(100, true)
                 success = true
             end
             if events:FindFirstChild('completeShake') then
-                for i = 1, 5 do
-                    events.completeShake:FireServer(100)
-                    events.completeShake:FireServer(99)
-                end
-                eventsFired = eventsFired + 10
+                events.completeShake:FireServer(100)
                 success = true
             end
             if events:FindFirstChild('rodshake') then
-                for i = 1, 5 do
-                    events.rodshake:FireServer(100, true)
-                    events.rodshake:FireServer(99, true)
-                end
-                eventsFired = eventsFired + 10
+                events.rodshake:FireServer(100, true)
                 success = true
             end
         end
     end)
     
-    -- Method 3: Additional potential shake events
+    -- Method 3: Try additional shake events (reduced)
     pcall(function()
         if ReplicatedStorage.events then
             local events = ReplicatedStorage.events
             local additionalEvents = {"shakeComplete", "finishShake", "shakeEnd", "shakeDone"}
             for _, eventName in pairs(additionalEvents) do
                 if events:FindFirstChild(eventName) then
-                    for i = 1, 3 do
-                        events[eventName]:FireServer(100, true)
-                    end
-                    eventsFired = eventsFired + 3
+                    events[eventName]:FireServer(100, true)
                     success = true
                 end
             end
         end
     end)
     
-    -- Method 4: Direct UI button interaction (fastest possible)
+    -- Method 4: Safe UI button interaction (reduced spam)
     pcall(function()
         local shakeUI = lp.PlayerGui:FindFirstChild('shakeui')
         if shakeUI and shakeUI:FindFirstChild('safezone') and shakeUI.safezone:FindFirstChild('button') then
             local button = shakeUI.safezone.button
             
-            -- Method 4a: Direct connection firing
+            -- Method 4a: Safe connection firing
             if getconnections then
                 for _, connection in pairs(getconnections(button.MouseButton1Click)) do
                     if connection.Function then
-                        connection.Function()
+                        pcall(connection.Function)
                         success = true
+                        break -- Only fire once to prevent spam
                     end
                 end
             end
             
-            -- Method 4b: Direct GuiService selection + instant return key
-            GuiService.SelectedObject = button
-            if GuiService.SelectedObject == button then
-                game:GetService('VirtualInputManager'):SendKeyEvent(true, Enum.KeyCode.Return, false, game)
-                game:GetService('VirtualInputManager'):SendKeyEvent(false, Enum.KeyCode.Return, false, game)
-                success = true
-            end
-            
-            -- Method 4c: MouseButton1Click firing
-            for i = 1, 3 do
+            -- Method 4b: Simple button click (most reliable)
+            pcall(function()
                 button.MouseButton1Click:Fire()
                 success = true
-            end
+            end)
         end
     end)
     
     local endTime = tick()
     local executionTime = (endTime - startTime)
     
-    -- Update statistics
+    -- Update statistics only if successful
     if success then
         autoShakeStats.totalShakes = autoShakeStats.totalShakes + 1
         autoShakeStats.totalTime = autoShakeStats.totalTime + executionTime
@@ -684,27 +690,61 @@ local function performInstantShake()
 end
 
 local function setupShakeUIDestroyer()
-    -- Ultra-aggressive shake UI prevention
+    -- Safe shake UI prevention with proper error handling
     local connection = lp.PlayerGui.ChildAdded:Connect(function(child)
         if child.Name == 'shakeui' and flags['autoshakev2'] then
-            -- INSTANT shake completion - no spawn delay
-            performInstantShake()
-            
-            -- INSTANT UI destruction - no wait
-            if child and child.Parent then
-                child:Destroy()
-            end
-            
-            -- Additional instant methods
-            pcall(function()
-                if child:FindFirstChild('safezone') and child.safezone:FindFirstChild('button') then
-                    -- Fire button click instantly
-                    if getconnections then
-                        for _, connection in pairs(getconnections(child.safezone.button.MouseButton1Click)) do
-                            if connection.Function then
-                                connection.Function()
+            -- Wait a tiny bit to let the UI fully load before processing
+            task.spawn(function()
+                task.wait(0.05) -- Small delay to prevent NULL parent errors
+                
+                -- Check if UI still exists and has proper parent
+                if child and child.Parent and child.Parent == lp.PlayerGui then
+                    -- Perform instant shake first
+                    performInstantShake()
+                    
+                    -- Safely handle button interactions
+                    pcall(function()
+                        if child:FindFirstChild('safezone') and child.safezone:FindFirstChild('button') then
+                            local button = child.safezone.button
+                            
+                            -- Try multiple completion methods safely
+                            if getconnections then
+                                for _, conn in pairs(getconnections(button.MouseButton1Click)) do
+                                    if conn.Function then
+                                        pcall(conn.Function)
+                                    end
+                                end
                             end
+                            
+                            -- Fire the click event
+                            pcall(function()
+                                button.MouseButton1Click:Fire()
+                            end)
                         end
+                    end)
+                    
+                    -- Safely destroy UI after a small delay
+                    task.wait(0.1)
+                    if child and child.Parent then
+                        pcall(function()
+                            child:Destroy()
+                        end)
+                    end
+                end
+            end)
+        end
+        
+        -- Also handle reel UI if it appears
+        if child.Name == 'reel' and (flags['autoreel'] or flags['instantreel']) then
+            task.spawn(function()
+                task.wait(0.05)
+                
+                if child and child.Parent and child.Parent == lp.PlayerGui then
+                    -- Perform instant reel if enabled
+                    if flags['instantreel'] and InstantReel then
+                        pcall(function()
+                            InstantReel.performReel()
+                        end)
                     end
                 end
             end)
