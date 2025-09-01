@@ -122,9 +122,53 @@ else
         getStatistics = function() return {totalReels=0, successfulReels=0, successRate=0, averageTime=0} end,
         resetStatistics = function() end
     }
-end
+-- Load Utility System
+local UtilitySystem
+local utilityLoaded = false
+pcall(function()
+    if readfile and isfile('utility.lua') then
+        local utilityCode = readfile('utility.lua')
+        UtilitySystem = loadstring(utilityCode)()
+        utilityLoaded = true
+        print("📁 UtilitySystem: Loaded from local file")
+    else
+        -- Fallback: Load UtilitySystem from our repository
+        UtilitySystem = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/utility.lua'))()
+        utilityLoaded = true
+        print("🌐 UtilitySystem: Loaded from GitHub")
+    end
+end)
 
--- Initialize Teleport System safely
+-- Initialize Utility System safely
+if utilityLoaded and UtilitySystem then
+    if type(UtilitySystem) == "table" and UtilitySystem.init then
+        local success, result = pcall(function()
+            return UtilitySystem.init()
+        end)
+        if success then
+            print("✅ UtilitySystem initialized successfully")
+        else
+            warn("⚠️ UtilitySystem init failed: " .. tostring(result))
+        end
+    elseif type(UtilitySystem) == "table" then
+        print("✅ UtilitySystem loaded successfully (no init required)")
+    else
+        warn("⚠️ UtilitySystem loaded but not a table")
+    end
+else
+    warn("⚠️ UtilitySystem not loaded properly or init function not available")
+    -- Create fallback UtilitySystem object
+    UtilitySystem = {
+        setNoOxygen = function() return false end,
+        setNoTemperature = function() return false end,
+        setNoclip = function() return false end,
+        setAntiDown = function() return false end,
+        enableWalkSpeed = function() return false end,
+        enableUnlimitedJump = function() return false end,
+        setWalkSpeed = function() return false end,
+        setJumpPower = function() return false end,
+    }
+end
 if teleportLoaded and TeleportSystem then
     if type(TeleportSystem) == "table" and TeleportSystem.init then
         local success, result = pcall(function()
@@ -1620,6 +1664,227 @@ ExploitInfoSection:AddLabel("🎲 Auto Crates: Uses SkinCrates spin remotes")
 ExploitInfoSection:AddLabel("🥚 Auto Eggs: Uses egg opening remotes")
 ExploitInfoSection:AddLabel("⚒️ Auto Craft: Uses CanCraft/AttemptCraft remotes")
 ExploitInfoSection:AddLabel("✨ Auto Enchant: Uses enchant remotes")
+
+--// Utility Tab
+local UtilityTab = Window:MakeTab({
+    Name = "🛠️ Utility",
+    Icon = "rbxassetid://4483345875",
+    PremiumOnly = false
+})
+
+--// Player Enhancements Section
+local PlayerSection = UtilityTab:AddSection({
+    Name = "Player Enhancements"
+})
+
+PlayerSection:AddLabel("🫁 No Oxygen - Breathe underwater indefinitely")
+PlayerSection:AddLabel("🌡️ No Temperature - Immune to cold/temperature effects") 
+PlayerSection:AddLabel("👻 Noclip - Walk through walls")
+PlayerSection:AddLabel("🛡️ Anti-Down - No fall damage")
+
+local NoOxygenToggle = PlayerSection:AddToggle({
+    Name = "No Oxygen",
+    Default = false,
+    Flag = "nooxygenutility",
+    Save = true,
+    Callback = function(Value)
+        if UtilitySystem then
+            UtilitySystem.setNoOxygen(Value)
+            flags['nooxygenutility'] = Value
+        end
+    end    
+})
+
+local NoTemperatureToggle = PlayerSection:AddToggle({
+    Name = "No Temperature",
+    Default = false,
+    Flag = "notemperatureutility",
+    Save = true,
+    Callback = function(Value)
+        if UtilitySystem then
+            UtilitySystem.setNoTemperature(Value)
+            flags['notemperatureutility'] = Value
+        end
+    end    
+})
+
+local NoclipToggle = PlayerSection:AddToggle({
+    Name = "Noclip",
+    Default = false,
+    Flag = "noclipUtility",
+    Save = true,
+    Callback = function(Value)
+        if UtilitySystem then
+            UtilitySystem.setNoclip(Value)
+            flags['noclipUtility'] = Value
+        end
+    end    
+})
+
+local AntiDownToggle = PlayerSection:AddToggle({
+    Name = "Anti-Down (No Fall Damage)",
+    Default = false,
+    Flag = "antidownutility",
+    Save = true,
+    Callback = function(Value)
+        if UtilitySystem then
+            UtilitySystem.setAntiDown(Value)
+            flags['antidownutility'] = Value
+        end
+    end    
+})
+
+--// Movement Section  
+local MovementSection = UtilityTab:AddSection({
+    Name = "Movement Controls"
+})
+
+MovementSection:AddLabel("🏃 WalkSpeed - Custom walking speed")
+MovementSection:AddLabel("🦘 Jump Power - Custom jump power")
+
+local WalkSpeedToggle = MovementSection:AddToggle({
+    Name = "Custom WalkSpeed",
+    Default = false,
+    Flag = "walkspeedutility",
+    Save = true,
+    Callback = function(Value)
+        local speed = flags['walkspeedvalue'] or 16
+        if UtilitySystem then
+            UtilitySystem.enableWalkSpeed(Value, speed)
+            flags['walkspeedutility'] = Value
+        end
+    end    
+})
+
+local WalkSpeedSlider = MovementSection:AddSlider({
+    Name = "WalkSpeed Value",
+    Min = 1,
+    Max = 100,
+    Default = 16,
+    Color = Color3.fromRGB(100, 149, 237),
+    Increment = 1,
+    ValueName = "speed",
+    Flag = "walkspeedvalue",
+    Save = true,
+    Callback = function(Value)
+        flags['walkspeedvalue'] = Value
+        if flags['walkspeedutility'] and UtilitySystem then
+            UtilitySystem.setWalkSpeed(Value)
+        end
+    end    
+})
+
+MovementSection:AddTextbox({
+    Name = "Manual WalkSpeed (1-100)",
+    Default = "16",
+    TextDisappear = false,
+    Callback = function(Value)
+        local num = tonumber(Value)
+        if num and num >= 1 and num <= 100 then
+            flags['walkspeedvalue'] = num
+            WalkSpeedSlider:Set(num)
+            if flags['walkspeedutility'] and UtilitySystem then
+                UtilitySystem.setWalkSpeed(num)
+            end
+        end
+    end
+})
+
+local JumpPowerToggle = MovementSection:AddToggle({
+    Name = "Custom Jump Power",
+    Default = false,
+    Flag = "jumppowerutility",
+    Save = true,
+    Callback = function(Value)
+        local power = flags['jumppowervalue'] or 50
+        if UtilitySystem then
+            UtilitySystem.enableUnlimitedJump(Value, power)
+            flags['jumppowerutility'] = Value
+        end
+    end    
+})
+
+local JumpPowerSlider = MovementSection:AddSlider({
+    Name = "Jump Power Value",
+    Min = 1,
+    Max = 200,
+    Default = 50,
+    Color = Color3.fromRGB(50, 205, 50),
+    Increment = 1,
+    ValueName = "power",
+    Flag = "jumppowervalue",
+    Save = true,
+    Callback = function(Value)
+        flags['jumppowervalue'] = Value
+        if flags['jumppowerutility'] and UtilitySystem then
+            UtilitySystem.setJumpPower(Value)
+        end
+    end    
+})
+
+MovementSection:AddTextbox({
+    Name = "Manual Jump Power (1-200)",
+    Default = "50",
+    TextDisappear = false,
+    Callback = function(Value)
+        local num = tonumber(Value)
+        if num and num >= 1 and num <= 200 then
+            flags['jumppowervalue'] = num
+            JumpPowerSlider:Set(num)
+            if flags['jumppowerutility'] and UtilitySystem then
+                UtilitySystem.setJumpPower(num)
+            end
+        end
+    end
+})
+
+--// Quick Presets Section
+local PresetsSection = UtilityTab:AddSection({
+    Name = "Quick Presets"
+})
+
+PresetsSection:AddButton({
+    Name = "🏊 Underwater Explorer",
+    Callback = function()
+        NoOxygenToggle:Set(true)
+        NoTemperatureToggle:Set(true)
+        WalkSpeedToggle:Set(true)
+        WalkSpeedSlider:Set(25)
+    end    
+})
+
+PresetsSection:AddButton({
+    Name = "👻 Ghost Mode",
+    Callback = function()
+        NoclipToggle:Set(true)
+        AntiDownToggle:Set(true)
+        WalkSpeedToggle:Set(true) 
+        WalkSpeedSlider:Set(30)
+    end    
+})
+
+PresetsSection:AddButton({
+    Name = "🦘 Super Jump",
+    Callback = function()
+        JumpPowerToggle:Set(true)
+        JumpPowerSlider:Set(120)
+        AntiDownToggle:Set(true)
+    end    
+})
+
+PresetsSection:AddButton({
+    Name = "🔄 Reset All",
+    Callback = function()
+        NoOxygenToggle:Set(false)
+        NoTemperatureToggle:Set(false)
+        NoclipToggle:Set(false)
+        AntiDownToggle:Set(false)
+        WalkSpeedToggle:Set(false)
+        JumpPowerToggle:Set(false)
+        WalkSpeedSlider:Set(16)
+        JumpPowerSlider:Set(50)
+    end    
+})
 
 --// Settings Tab
 local SettingsTab = Window:MakeTab({
