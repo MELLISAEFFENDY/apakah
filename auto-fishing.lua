@@ -1,8 +1,8 @@
 --[[
     Auto Fishing Script for Roblox Fisch
     Created by: MELLISAEFFENDY
-    Description: Advanced auto fishing script with Instant Reel + Auto Drop Bobber + Auto Shake V2 + Teleport System
-    Version: 1.5
+    Description: Advanced auto fishing script with Instant Reel + Auto Drop Bobber + Auto Shake V2 + Comprehensive Teleport System
+    Version: 2.0
     GitHub: https://github.com/MELLISAEFFENDY/apakah
     
     ⚡ NEW: Instant Reel Module - Lightning fast reel system with anti-detection
@@ -56,11 +56,11 @@ end)
 --// Load Teleport System
 local TeleportSystem
 pcall(function()
-    if readfile and isfile and isfile('teleport-system.lua') then
-        TeleportSystem = loadstring(readfile('teleport-system.lua'))()
+    if readfile and isfile and isfile('teleport.lua') then
+        TeleportSystem = loadstring(readfile('teleport.lua'))()
     else
         -- Fallback: Load from GitHub
-        TeleportSystem = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/teleport-system.lua'))()
+        TeleportSystem = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/teleport.lua'))()
     end
 end)
 
@@ -84,27 +84,26 @@ else
 end
 
 -- Initialize Teleport System safely
-if TeleportSystem and TeleportSystem.enableAutoReturn then
-    TeleportSystem.enableAutoReturn()
+if TeleportSystem and TeleportSystem.init then
+    TeleportSystem = TeleportSystem.init()
     print("✅ TeleportSystem initialized successfully")
 else
-    warn("⚠️ TeleportSystem not loaded properly or enableAutoReturn function not available")
-end
-
---// Helper Functions
-local function safeTeleportCall(func, ...)
-    if TeleportSystem and type(TeleportSystem) == "table" and TeleportSystem[func] and type(TeleportSystem[func]) == "function" then
-        local success, result = pcall(TeleportSystem[func], ...)
-        if success then
-            return true, result or "Teleport successful"
-        else
-            warn("TeleportSystem call failed: " .. tostring(result))
-            return false, "Teleport failed: " .. tostring(result)
-        end
-    else
-        warn("⚠️ TeleportSystem function not available: " .. tostring(func))
-        return false, "TeleportSystem not available"
-    end
+    warn("⚠️ TeleportSystem not loaded properly or init function not available")
+    -- Create fallback TeleportSystem object
+    TeleportSystem = {
+        teleportToPlace = function() return false, "TeleportSystem not available" end,
+        teleportToFishArea = function() return false, "TeleportSystem not available" end,
+        teleportToNPC = function() return false, "TeleportSystem not available" end,
+        teleportToItem = function() return false, "TeleportSystem not available" end,
+        teleportToPlayer = function() return false, "TeleportSystem not available" end,
+        getPlaceNames = function() return {} end,
+        getFishAreaNames = function() return {} end,
+        getNPCNames = function() return {} end,
+        getItemNames = function() return {} end,
+        getPlayerList = function() return {} end,
+        getStats = function() return {totalTeleports = 0, successfulTeleports = 0, successRate = 0} end,
+        resetStats = function() end
+    }
 end
 
 --// Utility Functions
@@ -379,19 +378,128 @@ local TeleportTab = Window:MakeTab({
     PremiumOnly = false
 })
 
---// Quick Teleport Section
-local QuickTeleportSection = TeleportTab:AddSection({
-    Name = "🗺️ Quick Teleport Locations"
+--// Places Section
+local PlacesSection = TeleportTab:AddSection({
+    Name = "🗺️ Places"
 })
 
--- Popular fishing locations
-QuickTeleportSection:AddButton({
-    Name = "🏠 Moosewood Docks",
-    Callback = function()
-        local success, msg = safeTeleportCall("teleportToLocation", "Moosewood", "cframe", false)
+local PlaceDropdown = PlacesSection:AddDropdown({
+    Name = "Select Place",
+    Default = "Moosewood",
+    Options = TeleportSystem.getPlaceNames(),
+    Callback = function(Value)
+        local success, msg = TeleportSystem.teleportToPlace(Value)
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
-            Content = msg or (success and "Teleported successfully" or "Teleport failed"),
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+--// Fish Areas Section
+local FishAreasSection = TeleportTab:AddSection({
+    Name = "🐟 Fish Areas"
+})
+
+local FishAreaDropdown = FishAreasSection:AddDropdown({
+    Name = "Select Fish Area",
+    Default = "Ocean",
+    Options = TeleportSystem.getFishAreaNames(),
+    Callback = function(Value)
+        local success, msg = TeleportSystem.teleportToFishArea(Value)
+        OrionLib:MakeNotification({
+            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+--// NPCs Section
+local NPCsSection = TeleportTab:AddSection({
+    Name = "👥 NPCs"
+})
+
+local NPCDropdown = NPCsSection:AddDropdown({
+    Name = "Select NPC",
+    Default = "Appraiser",
+    Options = TeleportSystem.getNPCNames(),
+    Callback = function(Value)
+        local success, msg = TeleportSystem.teleportToNPC(Value)
+        OrionLib:MakeNotification({
+            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+--// Items Section
+local ItemsSection = TeleportTab:AddSection({
+    Name = "📦 Items & Rods"
+})
+
+local ItemDropdown = ItemsSection:AddDropdown({
+    Name = "Select Item/Rod",
+    Default = "Training Rod",
+    Options = TeleportSystem.getItemNames(),
+    Callback = function(Value)
+        local success, msg = TeleportSystem.teleportToItem(Value)
+        OrionLib:MakeNotification({
+            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+--// Players Section
+local PlayersSection = TeleportTab:AddSection({
+    Name = "👤 Players"
+})
+
+local PlayerDropdown = PlayersSection:AddDropdown({
+    Name = "Select Player",
+    Default = "",
+    Options = TeleportSystem.getPlayerList(),
+    Callback = function(Value)
+        if Value and Value ~= "" then
+            local success, msg = TeleportSystem.teleportToPlayer(Value)
+            OrionLib:MakeNotification({
+                Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+                Content = msg,
+                Time = 3
+            })
+        end
+    end    
+})
+
+PlayersSection:AddButton({
+    Name = "🔄 Refresh Player List",
+    Callback = function()
+        local newPlayers = TeleportSystem.getPlayerList()
+        PlayerDropdown:SetOptions(newPlayers)
+        OrionLib:MakeNotification({
+            Name = "🔄 Player List Updated",
+            Content = "Found " .. #newPlayers .. " players online",
+            Time = 2
+        })
+    end    
+})
+
+--// Quick Teleport Section  
+local QuickTeleportSection = TeleportTab:AddSection({
+    Name = "⚡ Quick Access"
+})
+
+QuickTeleportSection:AddButton({
+    Name = "� Moosewood Docks",
+    Callback = function()
+        local success, msg = TeleportSystem.teleportToPlace("Moosewood")
+        OrionLib:MakeNotification({
+            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+            Content = msg,
             Time = 3
         })
     end    
@@ -400,10 +508,10 @@ QuickTeleportSection:AddButton({
 QuickTeleportSection:AddButton({
     Name = "🌊 Deep Ocean",
     Callback = function()
-        local success, msg = safeTeleportCall("teleportToLocation", "Ocean", "cframe", false)
+        local success, msg = TeleportSystem.teleportToFishArea("Deep Ocean")
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
-            Content = msg or (success and "Teleported successfully" or "Teleport failed"),
+            Content = msg,
             Time = 3
         })
     end    
@@ -412,10 +520,10 @@ QuickTeleportSection:AddButton({
 QuickTeleportSection:AddButton({
     Name = "🍄 Mushgrove Swamp", 
     Callback = function()
-        local success, msg = safeTeleportCall("teleportToLocation", "Mushgrove", "cframe", false)
+        local success, msg = TeleportSystem.teleportToPlace("Mushgrove")
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
-            Content = msg or (success and "Teleported successfully" or "Teleport failed"),
+            Content = msg,
             Time = 3
         })
     end    
@@ -424,7 +532,7 @@ QuickTeleportSection:AddButton({
 QuickTeleportSection:AddButton({
     Name = "🏝️ Roslit Bay",
     Callback = function()
-        local success, msg = safeTeleportCall("teleportToLocation", "Roslit Bay", "cframe", false)
+        local success, msg = TeleportSystem.teleportToPlace("Roslit Bay")
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
             Content = msg,
@@ -436,7 +544,7 @@ QuickTeleportSection:AddButton({
 QuickTeleportSection:AddButton({
     Name = "❄️ Snowcap Island",
     Callback = function()
-        local success, msg = safeTeleportCall("teleportToLocation", "Snowcap Island", "cframe", false)
+        local success, msg = TeleportSystem.teleportToPlace("Snowcap Island")
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
             Content = msg,
@@ -446,9 +554,9 @@ QuickTeleportSection:AddButton({
 })
 
 QuickTeleportSection:AddButton({
-    Name = "🌴 Sunstone Island",
+    Name = "� Merchant",
     Callback = function()
-        local success, msg = safeTeleportCall("teleportToLocation", "Sunstone Island", "cframe", false)
+        local success, msg = TeleportSystem.teleportToNPC("Merchant")
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
             Content = msg,
@@ -463,9 +571,9 @@ local SpecialLocationsSection = TeleportTab:AddSection({
 })
 
 SpecialLocationsSection:AddButton({
-    Name = "🕳️ The Depths Entrance",
+    Name = "🕳️ The Depths",
     Callback = function()
-        local success, msg = safeTeleportCall("teleportToLocation", "The Depths", "cframe", false)
+        local success, msg = TeleportSystem.teleportToPlace("The Depths")
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
             Content = msg,
@@ -477,7 +585,7 @@ SpecialLocationsSection:AddButton({
 SpecialLocationsSection:AddButton({
     Name = "💀 Forsaken Shores",
     Callback = function()
-        local success, msg = safeTeleportCall("teleportToLocation", "Forsaken Shores", "cframe", false)
+        local success, msg = TeleportSystem.teleportToPlace("Forsaken Shores")
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
             Content = msg,
@@ -489,7 +597,7 @@ SpecialLocationsSection:AddButton({
 SpecialLocationsSection:AddButton({
     Name = "🏔️ Vertigo",
     Callback = function()
-        local success, msg = safeTeleportCall("teleportToLocation", "Vertigo", "cframe", false)
+        local success, msg = TeleportSystem.teleportToPlace("Vertigo")
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
             Content = msg,
@@ -501,7 +609,7 @@ SpecialLocationsSection:AddButton({
 SpecialLocationsSection:AddButton({
     Name = "🏛️ Ancient Isle",
     Callback = function()
-        local success, msg = safeTeleportCall("teleportToLocation", "Ancient Isle", "cframe", false)
+        local success, msg = TeleportSystem.teleportToPlace("Ancient Isle")
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
             Content = msg,
@@ -564,10 +672,10 @@ CustomTeleportSection:AddTextbox({
 CustomTeleportSection:AddButton({
     Name = "🎯 Teleport to Coordinates",
     Callback = function()
-        local success = safeTeleportCall("teleportToCoordinates", coordX, coordY, coordZ, flags['smoothteleport'])
+        local success, msg = TeleportSystem.teleportToCoordinates(coordX, coordY, coordZ)
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
-            Content = success and string.format("Teleported to (%d, %d, %d)", coordX, coordY, coordZ) or "Failed to teleport to coordinates",
+            Content = msg or (success and string.format("Teleported to (%d, %d, %d)", coordX, coordY, coordZ) or "Failed to teleport to coordinates"),
             Time = 3
         })
     end    
@@ -593,10 +701,10 @@ PlayerTeleportSection:AddButton({
     Name = "🏃 Teleport to Player",
     Callback = function()
         if targetPlayer ~= "" then
-            local success = safeTeleportCall("teleportToPlayer", targetPlayer)
+            local success, msg = TeleportSystem.teleportToPlayer(targetPlayer)
             OrionLib:MakeNotification({
                 Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
-                Content = success and "Teleported to " .. targetPlayer or "Failed to find player: " .. targetPlayer,
+                Content = msg or (success and "Teleported to " .. targetPlayer or "Failed to find player: " .. targetPlayer),
                 Time = 3
             })
         else
@@ -618,10 +726,10 @@ TeleportUtilitiesSection:AddButton({
     Name = "💾 Save Current Location",
     Callback = function()
         local locationName = "CustomLocation_" .. os.time()
-        local success = safeTeleportCall("saveCurrentLocation", locationName)
+        local success, msg = TeleportSystem.saveCurrentLocation(locationName)
         OrionLib:MakeNotification({
             Name = success and "✅ Location Saved" or "❌ Save Failed",
-            Content = success and "Location saved as: " .. locationName or "Failed to save current location",
+            Content = msg or (success and "Location saved as: " .. locationName or "Failed to save current location"),
             Time = 3
         })
     end    
