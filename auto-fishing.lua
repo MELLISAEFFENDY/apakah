@@ -52,23 +52,38 @@ local dropBobberTime = 15
 
 --// Load UI Library
 local OrionLib
-pcall(function()
+local success1, result1 = pcall(function()
     if readfile and isfile and isfile('ui.lua') then
         OrionLib = loadstring(readfile('ui.lua'))()
+        print("📁 OrionLib: Loaded from local file")
     else
         -- Fallback: Load OrionLib from our repository
         OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/ui.lua'))()
+        print("🌐 OrionLib: Loaded from GitHub")
     end
 end)
 
+if not success1 then
+    warn("⚠️ Failed to load OrionLib: " .. tostring(result1))
+    -- Try alternative fallback
+    local success2, result2 = pcall(function()
+        OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
+        print("🌐 OrionLib: Loaded from alternative source")
+    end)
+    
+    if not success2 then
+        error("❌ Failed to load OrionLib UI library from all sources!")
+    end
+end
+
 if not OrionLib then
-    error("❌ Failed to load OrionLib UI library!")
+    error("❌ OrionLib is nil after loading!")
 end
 
 --// Load Instant Reel Module
 local InstantReel
 local instantReelLoaded = false
-pcall(function()
+local success3, result3 = pcall(function()
     if readfile and isfile and isfile('instant-reel.lua') then
         local instantReelCode = readfile('instant-reel.lua')
         InstantReel = loadstring(instantReelCode)()
@@ -82,10 +97,15 @@ pcall(function()
     end
 end)
 
+if not success3 then
+    warn("⚠️ Failed to load InstantReel: " .. tostring(result3))
+    instantReelLoaded = false
+end
+
 --// Load Teleport System
 local TeleportSystem
 local teleportLoaded = false
-pcall(function()
+local success4, result4 = pcall(function()
     if readfile and isfile and isfile('teleport.lua') then
         local teleportCode = readfile('teleport.lua')
         TeleportSystem = loadstring(teleportCode)()
@@ -98,6 +118,11 @@ pcall(function()
         print("🌐 TeleportSystem: Loaded from GitHub")
     end
 end)
+
+if not success4 then
+    warn("⚠️ Failed to load TeleportSystem: " .. tostring(result4))
+    teleportLoaded = false
+end
 
 -- Initialize InstantReel safely
 if instantReelLoaded and InstantReel then
@@ -122,11 +147,13 @@ else
         getStatistics = function() return {totalReels=0, successfulReels=0, successRate=0, averageTime=0} end,
         resetStatistics = function() end
     }
+end
+
 -- Load Utility System
 local UtilitySystem
 local utilityLoaded = false
-pcall(function()
-    if readfile and isfile('utility.lua') then
+local success5, result5 = pcall(function()
+    if readfile and isfile and isfile('utility.lua') then
         local utilityCode = readfile('utility.lua')
         UtilitySystem = loadstring(utilityCode)()
         utilityLoaded = true
@@ -138,6 +165,11 @@ pcall(function()
         print("🌐 UtilitySystem: Loaded from GitHub")
     end
 end)
+
+if not success5 then
+    warn("⚠️ Failed to load UtilitySystem: " .. tostring(result5))
+    utilityLoaded = false
+end
 
 -- Initialize Utility System safely
 if utilityLoaded and UtilitySystem then
