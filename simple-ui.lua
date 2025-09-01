@@ -139,6 +139,25 @@ function SimpleUI:MakeWindow(config)
         TextXAlignment = Enum.TextXAlignment.Left
     })
     
+    -- Minimize Button
+    local MinimizeButton = CreateInstance("TextButton", {
+        Name = "MinimizeButton",
+        Parent = TitleBar,
+        BackgroundColor3 = Color3.fromRGB(100, 150, 255),
+        BorderSizePixel = 0,
+        Position = UDim2.new(1, -75, 0, 5),
+        Size = UDim2.new(0, 30, 0, 30),
+        Font = Enum.Font.GothamBold,
+        Text = "−",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 20
+    })
+    
+    CreateInstance("UICorner", {
+        Parent = MinimizeButton,
+        CornerRadius = UDim.new(0, 5)
+    })
+    
     -- Close Button
     local CloseButton = CreateInstance("TextButton", {
         Name = "CloseButton",
@@ -157,6 +176,77 @@ function SimpleUI:MakeWindow(config)
         Parent = CloseButton,
         CornerRadius = UDim.new(0, 5)
     })
+    
+    -- Floating Button (hidden by default)
+    local FloatingButton = CreateInstance("TextButton", {
+        Name = "FloatingButton",
+        Parent = ScreenGui,
+        BackgroundColor3 = Color3.fromRGB(60, 120, 200),
+        BorderSizePixel = 0,
+        Position = UDim2.new(0, 20, 0, 20),
+        Size = UDim2.new(0, 60, 0, 60),
+        Font = Enum.Font.GothamBold,
+        Text = "🎣",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 24,
+        Visible = false
+    })
+    
+    CreateInstance("UICorner", {
+        Parent = FloatingButton,
+        CornerRadius = UDim.new(0, 30)
+    })
+    
+    CreateInstance("UIStroke", {
+        Parent = FloatingButton,
+        Color = Color3.fromRGB(255, 255, 255),
+        Thickness = 2
+    })
+    
+    -- Minimize/Restore functionality
+    local isMinimized = false
+    
+    MinimizeButton.MouseButton1Click:Connect(function()
+        isMinimized = not isMinimized
+        
+        if isMinimized then
+            -- Minimize
+            TweenService:Create(MainFrame, TweenInfo.new(0.3), {
+                Size = UDim2.new(0, 0, 0, 0),
+                Position = UDim2.new(0.5, 0, 0.5, 0)
+            }):Play()
+            
+            wait(0.3)
+            MainFrame.Visible = false
+            FloatingButton.Visible = true
+            
+            -- Animate floating button in
+            FloatingButton.Size = UDim2.new(0, 0, 0, 0)
+            TweenService:Create(FloatingButton, TweenInfo.new(0.3), {
+                Size = UDim2.new(0, 60, 0, 60)
+            }):Play()
+        else
+            -- Restore
+            FloatingButton.Visible = false
+            MainFrame.Visible = true
+            
+            TweenService:Create(MainFrame, TweenInfo.new(0.3), {
+                Size = config.Size,
+                Position = UDim2.new(0.5, -config.Size.X.Offset/2, 0.5, -config.Size.Y.Offset/2)
+            }):Play()
+        end
+    end)
+    
+    FloatingButton.MouseButton1Click:Connect(function()
+        isMinimized = false
+        FloatingButton.Visible = false
+        MainFrame.Visible = true
+        
+        TweenService:Create(MainFrame, TweenInfo.new(0.3), {
+            Size = config.Size,
+            Position = UDim2.new(0.5, -config.Size.X.Offset/2, 0.5, -config.Size.Y.Offset/2)
+        }):Play()
+    end)
     
     CloseButton.MouseButton1Click:Connect(function()
         ScreenGui:Destroy()
@@ -293,15 +383,22 @@ function SimpleUI:MakeWindow(config)
             local SectionFrame = CreateInstance("Frame", {
                 Name = "SectionFrame",
                 Parent = TabContent,
-                BackgroundTransparency = 1,
-                Size = UDim2.new(1, 0, 0, 25)
+                BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+                BorderSizePixel = 0,
+                Size = UDim2.new(1, 0, 0, 35)
+            })
+            
+            CreateInstance("UICorner", {
+                Parent = SectionFrame,
+                CornerRadius = UDim.new(0, 8)
             })
             
             local SectionLabel = CreateInstance("TextLabel", {
                 Name = "SectionLabel",
                 Parent = SectionFrame,
                 BackgroundTransparency = 1,
-                Size = UDim2.new(1, 0, 1, 0),
+                Position = UDim2.new(0, 15, 0, 0),
+                Size = UDim2.new(1, -30, 1, 0),
                 Font = Enum.Font.GothamBold,
                 Text = config.Name,
                 TextColor3 = Color3.fromRGB(255, 255, 255),
@@ -325,12 +422,18 @@ function SimpleUI:MakeWindow(config)
                 Parent = TabContent,
                 BackgroundColor3 = Color3.fromRGB(40, 40, 40),
                 BorderSizePixel = 0,
-                Size = UDim2.new(1, 0, 0, 40)
+                Size = UDim2.new(1, 0, 0, 45)
             })
             
             CreateInstance("UICorner", {
                 Parent = ToggleFrame,
                 CornerRadius = UDim.new(0, 8)
+            })
+            
+            CreateInstance("UIStroke", {
+                Parent = ToggleFrame,
+                Color = Color3.fromRGB(60, 60, 60),
+                Thickness = 1
             })
             
             local ToggleLabel = CreateInstance("TextLabel", {
@@ -351,14 +454,14 @@ function SimpleUI:MakeWindow(config)
                 Parent = ToggleFrame,
                 BackgroundColor3 = config.Default and Color3.fromRGB(60, 120, 200) or Color3.fromRGB(60, 60, 60),
                 BorderSizePixel = 0,
-                Position = UDim2.new(1, -45, 0.5, -10),
-                Size = UDim2.new(0, 40, 0, 20),
+                Position = UDim2.new(1, -50, 0.5, -12),
+                Size = UDim2.new(0, 45, 0, 24),
                 Text = ""
             })
             
             CreateInstance("UICorner", {
                 Parent = ToggleButton,
-                CornerRadius = UDim.new(0, 10)
+                CornerRadius = UDim.new(0, 12)
             })
             
             local ToggleCircle = CreateInstance("Frame", {
@@ -366,19 +469,25 @@ function SimpleUI:MakeWindow(config)
                 Parent = ToggleButton,
                 BackgroundColor3 = Color3.fromRGB(255, 255, 255),
                 BorderSizePixel = 0,
-                Position = config.Default and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8),
-                Size = UDim2.new(0, 16, 0, 16)
+                Position = config.Default and UDim2.new(1, -20, 0.5, -10) or UDim2.new(0, 2, 0.5, -10),
+                Size = UDim2.new(0, 20, 0, 20)
             })
             
             CreateInstance("UICorner", {
                 Parent = ToggleCircle,
-                CornerRadius = UDim.new(0, 8)
+                CornerRadius = UDim.new(0, 10)
+            })
+            
+            CreateInstance("UIStroke", {
+                Parent = ToggleCircle,
+                Color = Color3.fromRGB(200, 200, 200),
+                Thickness = 1
             })
             
             function Toggle:Set(value)
                 Toggle.Value = value
                 local color = value and Color3.fromRGB(60, 120, 200) or Color3.fromRGB(60, 60, 60)
-                local position = value and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+                local position = value and UDim2.new(1, -20, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
                 
                 TweenService:Create(ToggleButton, TweenInfo.new(0.2), {BackgroundColor3 = color}):Play()
                 TweenService:Create(ToggleCircle, TweenInfo.new(0.2), {Position = position}):Play()
@@ -407,7 +516,7 @@ function SimpleUI:MakeWindow(config)
                 Parent = TabContent,
                 BackgroundColor3 = Color3.fromRGB(60, 120, 200),
                 BorderSizePixel = 0,
-                Size = UDim2.new(1, 0, 0, 40),
+                Size = UDim2.new(1, 0, 0, 45),
                 Font = Enum.Font.GothamBold,
                 Text = config.Name,
                 TextColor3 = Color3.fromRGB(255, 255, 255),
@@ -419,10 +528,24 @@ function SimpleUI:MakeWindow(config)
                 CornerRadius = UDim.new(0, 8)
             })
             
+            CreateInstance("UIStroke", {
+                Parent = ButtonFrame,
+                Color = Color3.fromRGB(80, 140, 220),
+                Thickness = 1
+            })
+            
+            ButtonFrame.MouseEnter:Connect(function()
+                TweenService:Create(ButtonFrame, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80, 140, 220)}):Play()
+            end)
+            
+            ButtonFrame.MouseLeave:Connect(function()
+                TweenService:Create(ButtonFrame, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 120, 200)}):Play()
+            end)
+            
             ButtonFrame.MouseButton1Click:Connect(function()
-                TweenService:Create(ButtonFrame, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(80, 140, 220)}):Play()
+                TweenService:Create(ButtonFrame, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(100, 160, 240)}):Play()
                 wait(0.1)
-                TweenService:Create(ButtonFrame, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(60, 120, 200)}):Play()
+                TweenService:Create(ButtonFrame, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(80, 140, 220)}):Play()
                 config.Callback()
             end)
             
@@ -430,11 +553,25 @@ function SimpleUI:MakeWindow(config)
         end
         
         function Tab:AddLabel(text)
-            local LabelFrame = CreateInstance("TextLabel", {
+            local LabelFrame = CreateInstance("Frame", {
                 Name = "LabelFrame",
                 Parent = TabContent,
+                BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+                BorderSizePixel = 0,
+                Size = UDim2.new(1, 0, 0, 35)
+            })
+            
+            CreateInstance("UICorner", {
+                Parent = LabelFrame,
+                CornerRadius = UDim.new(0, 8)
+            })
+            
+            local Label = CreateInstance("TextLabel", {
+                Name = "Label",
+                Parent = LabelFrame,
                 BackgroundTransparency = 1,
-                Size = UDim2.new(1, 0, 0, 25),
+                Position = UDim2.new(0, 15, 0, 0),
+                Size = UDim2.new(1, -30, 1, 0),
                 Font = Enum.Font.Gotham,
                 Text = text or "Label",
                 TextColor3 = Color3.fromRGB(200, 200, 200),
@@ -442,7 +579,7 @@ function SimpleUI:MakeWindow(config)
                 TextXAlignment = Enum.TextXAlignment.Left
             })
             
-            return LabelFrame
+            return Label
         end
         
         return Tab

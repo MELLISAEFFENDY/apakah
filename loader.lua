@@ -28,9 +28,9 @@ local function loadScript()
                 local localScript = readfile('auto-fishing.lua')
                 loadstring(localScript)()
                 print("🎣 Auto Fishing Pro loaded from local file!")
-            elseif isfile('simple-ui.lua') then
+            elseif isfile('ui.lua') then
                 -- Load UI library first, then show error message
-                local ui = loadstring(readfile('simple-ui.lua'))()
+                local ui = loadstring(readfile('ui.lua'))()
                 local window = ui:MakeWindow({Name = "⚠️ Auto Fishing Pro - Error"})
                 ui:MakeNotification({
                     Name = "Error",

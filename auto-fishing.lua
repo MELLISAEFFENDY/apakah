@@ -1,9 +1,12 @@
 --[[
     Auto Fishing Script for Roblox Fisch
     Created by: MELLISAEFFENDY
-    Description: Advanced auto fishing script with comprehensive features
-    Version: 1.0
+    Description: Advanced auto fishing script with Instant Reel Module
+    Version: 1.2
     GitHub: https://github.com/MELLISAEFFENDY/apakah
+    
+    ⚡ NEW: Instant Reel Module - Lightning fast reel system with anti-detection
+    🎨 UI: Uses OrionLib (ui.lua) for professional interface
 ]]
 
 --// Services
@@ -21,14 +24,24 @@ local connections = {}
 
 --// Load UI Library
 local OrionLib
-if readfile and isfile and isfile('simple-ui.lua') then
-    OrionLib = loadstring(readfile('simple-ui.lua'))()
-elseif readfile and isfile and isfile('ui.lua') then
+if readfile and isfile and isfile('ui.lua') then
     OrionLib = loadstring(readfile('ui.lua'))()
 else
-    -- Fallback: Load our custom UI library from GitHub
-    OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/simple-ui.lua'))()
+    -- Fallback: Load OrionLib from official source
+    OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
 end
+
+--// Load Instant Reel Module
+local InstantReel
+if readfile and isfile and isfile('instant-reel.lua') then
+    InstantReel = loadstring(readfile('instant-reel.lua'))()
+else
+    -- Fallback: Load from GitHub
+    InstantReel = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/instant-reel.lua'))()
+end
+
+-- Initialize Instant Reel Module
+InstantReel = InstantReel.init()
 
 --// Utility Functions
 local function getChar()
@@ -102,7 +115,7 @@ local CharacterSection = AutoFishingTab:AddSection({
     Name = "Character Control"
 })
 
-CharacterSection:AddToggle({
+local FreezeToggle = CharacterSection:AddToggle({
     Name = "Freeze Character",
     Default = false,
     Flag = "freezechar",
@@ -120,7 +133,7 @@ local FishingSection = AutoFishingTab:AddSection({
     Name = "Fishing Automation"
 })
 
-FishingSection:AddToggle({
+local AutoCastToggle = FishingSection:AddToggle({
     Name = "Auto Cast",
     Default = false,
     Flag = "autocast",
@@ -130,7 +143,7 @@ FishingSection:AddToggle({
     end    
 })
 
-FishingSection:AddToggle({
+local AutoShakeToggle = FishingSection:AddToggle({
     Name = "Auto Shake",
     Default = false,
     Flag = "autoshake",
@@ -140,7 +153,7 @@ FishingSection:AddToggle({
     end    
 })
 
-FishingSection:AddToggle({
+local AutoReelToggle = FishingSection:AddToggle({
     Name = "Auto Reel",
     Default = false,
     Flag = "autoreel",
@@ -156,7 +169,7 @@ local EnhancementSection = AutoFishingTab:AddSection({
 })
 
 if checkFunc(hookmetamethod) then
-    EnhancementSection:AddToggle({
+    local PerfectCastToggle = EnhancementSection:AddToggle({
         Name = "Perfect Cast",
         Default = false,
         Flag = "perfectcast",
@@ -166,7 +179,7 @@ if checkFunc(hookmetamethod) then
         end    
     })
 
-    EnhancementSection:AddToggle({
+    local AlwaysCatchToggle = EnhancementSection:AddToggle({
         Name = "Always Catch",
         Default = false,
         Flag = "alwayscatch",
@@ -178,6 +191,87 @@ if checkFunc(hookmetamethod) then
 else
     EnhancementSection:AddLabel("⚠️ Hooks not available - Perfect Cast & Always Catch disabled")
 end
+
+--// Instant Reel Section
+local InstantReelSection = AutoFishingTab:AddSection({
+    Name = "⚡ Instant Reel System"
+})
+
+local InstantReelToggle = InstantReelSection:AddToggle({
+    Name = "Enable Instant Reel",
+    Default = false,
+    Flag = "instantreel",
+    Save = true,
+    Callback = function(Value)
+        flags['instantreel'] = Value
+        InstantReel.setEnabled(Value)
+    end    
+})
+
+local InstantModeToggle = InstantReelSection:AddToggle({
+    Name = "Instant Mode (High Risk)",
+    Default = false,
+    Flag = "instantmode",
+    Save = true,
+    Callback = function(Value)
+        flags['instantmode'] = Value
+        InstantReel.setInstantMode(Value)
+    end    
+})
+
+local FastModeToggle = InstantReelSection:AddToggle({
+    Name = "Fast Mode (Safer)",
+    Default = true,
+    Flag = "fastmode",
+    Save = true,
+    Callback = function(Value)
+        flags['fastmode'] = Value
+        InstantReel.setFastMode(Value)
+    end    
+})
+
+local SafeModeToggle = InstantReelSection:AddToggle({
+    Name = "Anti-Detection Mode",
+    Default = true,
+    Flag = "safemode",
+    Save = true,
+    Callback = function(Value)
+        flags['safemode'] = Value
+        InstantReel.setDetectionAvoidance(Value)
+    end    
+})
+
+local TestButton = InstantReelSection:AddButton({
+    Name = "🧪 Test Reel Access",
+    Callback = function()
+        InstantReel.printTestResults()
+    end    
+})
+
+local StatsButton = InstantReelSection:AddButton({
+    Name = "📊 Show Statistics",
+    Callback = function()
+        local stats = InstantReel.getStatistics()
+        OrionLib:MakeNotification({
+            Name = "📊 Instant Reel Stats",
+            Content = string.format("Total: %d | Success: %d (%.1f%%) | Avg Time: %.2fs", 
+                stats.totalReels, stats.successfulReels, stats.successRate, stats.averageTime),
+            Time = 5
+        })
+    end    
+})
+
+local ResetStatsButton = InstantReelSection:AddButton({
+    Name = "🔄 Reset Statistics", 
+    Callback = function()
+        InstantReel.resetStatistics()
+        OrionLib:MakeNotification({
+            Name = "🔄 Statistics Reset",
+            Content = "All instant reel statistics have been reset.",
+            Time = 3
+        })
+    end    
+})
 
 --// Settings Tab
 local SettingsTab = Window:MakeTab({
@@ -241,12 +335,23 @@ connections.mainLoop = RunService.Heartbeat:Connect(function()
             end
         end
         
-        -- Auto Reel
+        -- Auto Reel / Instant Reel
         if flags['autoreel'] then
             local rod = findRod()
             if rod and rod.values and rod.values.lure.Value == 100 then
-                wait(0.5)
-                ReplicatedStorage.events.reelfinished:FireServer(100, true)
+                -- Use Instant Reel if enabled, otherwise use normal reel
+                if flags['instantreel'] then
+                    InstantReel.performReel()
+                else
+                    wait(0.5)
+                    ReplicatedStorage.events.reelfinished:FireServer(100, true)
+                end
+            end
+        elseif flags['instantreel'] then
+            -- Standalone Instant Reel (without Auto Reel)
+            local rod = findRod()
+            if rod and rod.values and rod.values.lure.Value >= 50 then
+                InstantReel.performReel()
             end
         end
     end)
@@ -262,12 +367,24 @@ OrionLib:Init()
 
 --// Notification
 OrionLib:MakeNotification({
-    Name = "🎣 Auto Fishing Pro",
-    Content = "Script loaded successfully! Ready to fish automatically.",
+    Name = "🎣 Auto Fishing Pro v1.2",
+    Content = "Script loaded with Instant Reel Module and OrionLib UI! Ready to fish at lightning speed.",
     Image = "rbxassetid://4483345875",
     Time = 5
 })
 
-print("🎣 Auto Fishing Pro - Script loaded successfully!")
+-- Instant Reel startup notification
+spawn(function()
+    wait(2)
+    OrionLib:MakeNotification({
+        Name = "⚡ Instant Reel Module",
+        Content = "Advanced instant reel system loaded! Check the new Instant Reel section.",
+        Time = 4
+    })
+end)
+
+print("🎣 Auto Fishing Pro v1.2 - Script loaded successfully!")
+print("⚡ Instant Reel Module - Loaded and ready!")
+print("🎨 UI Library - OrionLib (ui.lua)")
 print("📁 GitHub: https://github.com/MELLISAEFFENDY/apakah")
-print("⚙️ Version: 1.0")
+print("⚙️ Version: 1.2")
