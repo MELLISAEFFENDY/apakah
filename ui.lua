@@ -41,7 +41,7 @@ local Icons = {
 
 -- Try to load icons from GitHub, but don't fail if it's not available
 local Success, Response = pcall(function()
-	local ExternalIcons = HttpService:JSONDecode(game:HttpGetAsync("https://raw.githubusercontent.com/evoincorp/lucideblox/master/src/modules/util/icons.json")).icons
+	local ExternalIcons = HttpService:JSONDecode(game:HttpGetAsync("https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/icons.json")).icons
 	-- Merge external icons with fallback icons
 	for name, icon in pairs(ExternalIcons) do
 		Icons[name] = icon
