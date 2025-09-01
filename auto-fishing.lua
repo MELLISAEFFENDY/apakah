@@ -45,6 +45,11 @@ local lastSellTime = 0
 local lastQuestCheck = 0
 local lastTreasureCheck = 0
 
+--// Delay Settings Variables
+local autoCastDelay = 0.5
+local autoReelDelay = 0.5
+local dropBobberTime = 15
+
 --// Load UI Library
 local OrionLib
 pcall(function()
@@ -702,6 +707,11 @@ local FishingSection = AutoFishingTab:AddSection({
     Name = "Fishing Automation"
 })
 
+FishingSection:AddLabel("⚙️ Timing Controls - Adjust delays for better performance")
+FishingSection:AddLabel("• Auto Cast Delay: Time between casts")
+FishingSection:AddLabel("• Auto Reel Delay: Used when Instant Reel is OFF")
+FishingSection:AddLabel("• Drop Bobber Time: How long to wait before dropping bobber")
+
 local AutoCastToggle = FishingSection:AddToggle({
     Name = "Auto Cast",
     Default = false,
@@ -776,7 +786,40 @@ local DropBobberTimeSlider = FishingSection:AddSlider({
     Flag = "dropbobbertime",
     Save = true,
     Callback = function(Value)
+        dropBobberTime = Value
         flags['dropbobbertime'] = Value
+    end    
+})
+
+local AutoCastDelaySlider = FishingSection:AddSlider({
+    Name = "Auto Cast Delay (seconds)",
+    Min = 0.1,
+    Max = 2.0,
+    Default = 0.5,
+    Color = Color3.fromRGB(100, 149, 237),
+    Increment = 0.1,
+    ValueName = "seconds",
+    Flag = "autocastdelay",
+    Save = true,
+    Callback = function(Value)
+        autoCastDelay = Value
+        flags['autocastdelay'] = Value
+    end    
+})
+
+local AutoReelDelaySlider = FishingSection:AddSlider({
+    Name = "Auto Reel Delay (seconds)",
+    Min = 0.1,
+    Max = 2.0,
+    Default = 0.5,
+    Color = Color3.fromRGB(50, 205, 50),
+    Increment = 0.1,
+    ValueName = "seconds",
+    Flag = "autoreeldelay",
+    Save = true,
+    Callback = function(Value)
+        autoReelDelay = Value
+        flags['autoreeldelay'] = Value
     end    
 })
 
@@ -1747,7 +1790,7 @@ connections.mainLoop = RunService.Heartbeat:Connect(function()
         if flags['autocast'] then
             local rod = findRod()
             if rod and rod.values and rod.values.lure.Value <= 0.001 then
-                wait(0.5)
+                wait(autoCastDelay)
                 rod.events.cast:FireServer(100, 1)
                 lastCastTime = tick()
                 bobberDropTimer = 0
@@ -1762,12 +1805,11 @@ connections.mainLoop = RunService.Heartbeat:Connect(function()
                 -- If bobber is in water but no fish caught
                 if lureValue > 0.001 and lureValue < 100 then
                     bobberDropTimer = bobberDropTimer + RunService.Heartbeat:Wait()
-                    local dropTime = flags['dropbobbertime'] or 15
                     
-                    if bobberDropTimer >= dropTime then
+                    if bobberDropTimer >= dropBobberTime then
                         -- Drop the bobber and recast
                         rod.events.cast:FireServer(0, 1) -- Drop bobber
-                        wait(0.5)
+                        wait(autoCastDelay) -- Use same delay as auto cast
                         rod.events.cast:FireServer(100, 1) -- Recast
                         lastCastTime = tick()
                         bobberDropTimer = 0
@@ -1782,11 +1824,11 @@ connections.mainLoop = RunService.Heartbeat:Connect(function()
         if flags['autoreel'] then
             local rod = findRod()
             if rod and rod.values and rod.values.lure.Value == 100 then
-                -- Use Instant Reel if enabled, otherwise use normal reel
+                -- Use Instant Reel if enabled, otherwise use normal reel with custom delay
                 if flags['instantreel'] then
                     InstantReel.performReel()
                 else
-                    wait(0.5)
+                    wait(autoReelDelay)
                     ReplicatedStorage.events.reelfinished:FireServer(100, true)
                 end
             end
