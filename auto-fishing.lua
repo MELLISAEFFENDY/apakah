@@ -102,20 +102,20 @@ if not success3 then
     instantReelLoaded = false
 end
 
---// Load Teleport System
+--// Load Enhanced Teleport System V2.0
 local TeleportSystem
 local teleportLoaded = false
 local success4, result4 = pcall(function()
-    if readfile and isfile and isfile('teleport.lua') then
-        local teleportCode = readfile('teleport.lua')
+    if readfile and isfile and isfile('teleport-v2.lua') then
+        local teleportCode = readfile('teleport-v2.lua')
         TeleportSystem = loadstring(teleportCode)()
         teleportLoaded = true
-        print("📁 TeleportSystem: Loaded from local file")
+        print("📁 Enhanced TeleportSystem V2.0: Loaded from local file")
     else
         -- Fallback: Load from GitHub
-        TeleportSystem = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/teleport.lua'))()
+        TeleportSystem = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/teleport-v2.lua'))()
         teleportLoaded = true
-        print("🌐 TeleportSystem: Loaded from GitHub")
+        print("🌐 Enhanced TeleportSystem V2.0: Loaded from GitHub")
     end
 end)
 
@@ -217,19 +217,30 @@ if teleportLoaded and TeleportSystem then
         warn("⚠️ TeleportSystem loaded but not a table")
     end
 else
-    warn("⚠️ TeleportSystem not loaded properly or init function not available")
-    -- Create fallback TeleportSystem object
+    warn("⚠️ Enhanced TeleportSystem V2.0 not loaded properly or init function not available")
+    -- Create fallback TeleportSystem object with V2.0 functions
     TeleportSystem = {
-        teleportToPlace = function() return false, "TeleportSystem not available" end,
-        teleportToFishArea = function() return false, "TeleportSystem not available" end,
-        teleportToNPC = function() return false, "TeleportSystem not available" end,
-        teleportToItem = function() return false, "TeleportSystem not available" end,
-        teleportToPlayer = function() return false, "TeleportSystem not available" end,
-        getPlaceNames = function() return {} end,
-        getFishAreaNames = function() return {} end,
-        getNPCNames = function() return {} end,
-        getItemNames = function() return {} end,
-        getPlayerList = function() return {} end,
+        teleportToLocation = function() return false, "Enhanced TeleportSystem V2.0 not available" end,
+        getCategoryNames = function() return {"Loading..."} end,
+        getLocationNames = function() return {"Loading..."} end,
+        getLocationsByCategory = function() return {} end,
+        searchLocations = function() return {} end,
+        getNearestLocations = function() return {} end,
+        autoTreasureHunt = function() return false end,
+        safeTeleport = function() return false, "Enhanced TeleportSystem V2.0 not available" end,
+        batchTeleport = function() return false end,
+        getDistanceToLocation = function() return math.huge end,
+        -- Legacy support
+        teleportToPlace = function() return false, "Use new category-based system" end,
+        teleportToFishArea = function() return false, "Use new category-based system" end,
+        teleportToNPC = function() return false, "Use new category-based system" end,
+        teleportToItem = function() return false, "Use new category-based system" end,
+        teleportToPlayer = function() return false, "Use new category-based system" end,
+        getPlaceNames = function() return {"Use Enhanced GPS V2.0"} end,
+        getFishAreaNames = function() return {"Use Enhanced GPS V2.0"} end,
+        getNPCNames = function() return {"Use Enhanced GPS V2.0"} end,
+        getItemNames = function() return {"Use Enhanced GPS V2.0"} end,
+        getPlayerList = function() return {"Use Enhanced GPS V2.0"} end,
         getStats = function() return {totalTeleports = 0, successfulTeleports = 0, successRate = 0} end,
         resetStats = function() end
     }
@@ -1062,20 +1073,61 @@ local TeleportTab = Window:MakeTab({
     PremiumOnly = false
 })
 
---// Places Section
-local PlacesSection = TeleportTab:AddSection({
-    Name = "🗺️ Places"
+--// Teleport Tab V2.0 - Category-based GPS System
+local TeleportTab = Window:MakeTab({
+    Name = "🚀 Teleport V2",
+    Icon = "rbxassetid://4483345875",
+    PremiumOnly = false
 })
 
-local PlaceDropdown = PlacesSection:AddDropdown({
-    Name = "Select Place",
-    Default = "",
-    Options = TeleportSystem.getPlaceNames(),
+-- GPS Info Section
+local GPSInfoSection = TeleportTab:AddSection({
+    Name = "🌍 GPS Navigation System"
+})
+
+GPSInfoSection:AddLabel("📍 Enhanced GPS with 263 locations")
+GPSInfoSection:AddLabel("📂 7 categories with smart organization")
+GPSInfoSection:AddLabel("🎯 Multiple teleport methods available")
+
+-- Category Selection
+local CategorySection = TeleportTab:AddSection({
+    Name = "� Select Category"
+})
+
+local selectedCategory = "First Sea Locations"
+local selectedLocation = ""
+local teleportMethod = "CFrame"
+
+local CategoryDropdown = CategorySection:AddDropdown({
+    Name = "Select Category",
+    Default = "First Sea Locations",
+    Options = teleportLoaded and TeleportSystem and TeleportSystem.getCategoryNames and TeleportSystem.getCategoryNames() or {"Loading..."},
     Callback = function(Value)
-        if Value and Value ~= "" then
-            local success, msg = TeleportSystem.teleportToPlace(Value)
+        selectedCategory = Value
+        if TeleportSystem and TeleportSystem.getLocationNames then
+            local locations = TeleportSystem.getLocationNames(Value)
+            if LocationDropdown then
+                LocationDropdown:Refresh(locations, "")
+            end
+        end
+    end    
+})
+
+-- Location Selection
+local LocationSection = TeleportTab:AddSection({
+    Name = "📍 Select Location"
+})
+
+local LocationDropdown = LocationSection:AddDropdown({
+    Name = "Select Location",
+    Default = "",
+    Options = teleportLoaded and TeleportSystem and TeleportSystem.getLocationNames and TeleportSystem.getLocationNames("First Sea Locations") or {"Loading..."},
+    Callback = function(Value)
+        selectedLocation = Value
+        if Value and Value ~= "" and TeleportSystem and TeleportSystem.teleportToLocation then
+            local success, msg = TeleportSystem.teleportToLocation(Value, selectedCategory, teleportMethod)
             OrionLib:MakeNotification({
-                Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+                Name = success and "✅ GPS Teleport Success" or "❌ GPS Teleport Failed",
                 Content = msg,
                 Time = 3
             })
@@ -1083,47 +1135,121 @@ local PlaceDropdown = PlacesSection:AddDropdown({
     end    
 })
 
---// Fish Areas Section
-local FishAreasSection = TeleportTab:AddSection({
-    Name = "🐟 Fish Areas"
+-- Teleport Method Selection
+local MethodSection = TeleportTab:AddSection({
+    Name = "⚙️ Teleport Settings"
 })
 
-local FishAreaDropdown = FishAreasSection:AddDropdown({
-    Name = "Select Fish Area",
-    Default = "",
-    Options = TeleportSystem.getFishAreaNames(),
+MethodSection:AddDropdown({
+    Name = "Teleport Method",
+    Default = "CFrame",
+    Options = {"CFrame", "TweenService", "RequestTeleportCFrame", "TeleportService"},
     Callback = function(Value)
-        if Value and Value ~= "" then
-            local success, msg = TeleportSystem.teleportToFishArea(Value)
+        teleportMethod = Value
+    end    
+})
+
+-- Search Function
+local SearchSection = TeleportTab:AddSection({
+    Name = "🔍 Search Locations"
+})
+
+SearchSection:AddTextbox({
+    Name = "Search Location",
+    Default = "",
+    TextDisappear = false,
+    Callback = function(Value)
+        if Value and Value ~= "" and TeleportSystem and TeleportSystem.searchLocations then
+            local results = TeleportSystem.searchLocations(Value)
+            if #results > 0 then
+                local firstResult = results[1]
+                selectedCategory = firstResult.category
+                selectedLocation = firstResult.name
+                CategoryDropdown:Set(selectedCategory)
+                LocationDropdown:Refresh(TeleportSystem.getLocationNames(selectedCategory), firstResult.name)
+            else
+                OrionLib:MakeNotification({
+                    Name = "🔍 Search Result",
+                    Content = "No locations found for: " .. Value,
+                    Time = 3
+                })
+            end
+        end
+    end
+})
+
+-- Quick Actions Section
+local QuickSection = TeleportTab:AddSection({
+    Name = "⚡ Quick Actions"
+})
+
+QuickSection:AddButton({
+    Name = "🏴‍☠️ Auto Treasure Hunt",
+    Callback = function()
+        if TeleportSystem and TeleportSystem.autoTreasureHunt then
+            TeleportSystem.autoTreasureHunt(3, teleportMethod)
             OrionLib:MakeNotification({
-                Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
-                Content = msg,
-                Time = 3
+                Name = "🏴‍☠️ Treasure Hunt Started",
+                Content = "Visiting all 27 treasure locations automatically!",
+                Time = 5
             })
         end
     end    
 })
 
---// NPCs Section
-local NPCsSection = TeleportTab:AddSection({
-    Name = "👥 NPCs"
-})
-
-local NPCDropdown = NPCsSection:AddDropdown({
-    Name = "Select NPC",
-    Default = "",
-    Options = TeleportSystem.getNPCNames(),
-    Callback = function(Value)
-        if Value and Value ~= "" then
-            local success, msg = TeleportSystem.teleportToNPC(Value)
+QuickSection:AddButton({
+    Name = "🎯 Nearest Locations",
+    Callback = function()
+        if TeleportSystem and TeleportSystem.getNearestLocations then
+            local nearest = TeleportSystem.getNearestLocations(selectedCategory, 5)
+            local message = "Nearest locations in " .. selectedCategory .. ":\n"
+            for i, data in pairs(nearest) do
+                message = message .. string.format("%d. %s (%.0fm)\n", i, data.location.name, data.distance)
+            end
             OrionLib:MakeNotification({
-                Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
-                Content = msg,
-                Time = 3
+                Name = "🎯 Nearest Locations",
+                Content = message,
+                Time = 8
             })
         end
     end    
 })
+
+-- Category Quick Access Buttons
+local QuickCategorySection = TeleportTab:AddSection({
+    Name = "🚀 Quick Category Access"
+})
+
+local categoryButtons = {
+    {name = "🌊 First Sea", category = "First Sea Locations"},
+    {name = "🌊 Second Sea", category = "Second Sea Locations"},
+    {name = "🏛️ Deep Ocean", category = "Deep Ocean Areas"},
+    {name = "⭐ Events", category = "Limited-Time Events"},
+    {name = "🎯 Special", category = "Special Areas"},
+    {name = "👥 NPCs", category = "NPC Locations"},
+    {name = "💎 Treasure", category = "Treasure Areas"}
+}
+
+for _, button in pairs(categoryButtons) do
+    QuickCategorySection:AddButton({
+        Name = button.name,
+        Callback = function()
+            selectedCategory = button.category
+            CategoryDropdown:Set(selectedCategory)
+            if TeleportSystem and TeleportSystem.getLocationNames then
+                local locations = TeleportSystem.getLocationNames(selectedCategory)
+                LocationDropdown:Refresh(locations, "")
+                OrionLib:MakeNotification({
+                    Name = "📂 Category Selected",
+                    Content = button.category .. " (" .. #locations .. " locations)",
+                    Time = 3
+                })
+            end
+        end    
+    })
+end
+
+-- Legacy sections removed - Now using Enhanced GPS V2.0 system above
 
 --// Items Section
 local ItemsSection = TeleportTab:AddSection({
