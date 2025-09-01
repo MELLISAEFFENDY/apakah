@@ -1,14 +1,22 @@
 --[[
     Auto Fishing Script for Roblox Fisch
     Created by: MELLISAEFFENDY
-    Description: Advanced auto fishing script with Instant Reel + Auto Drop Bobber + Auto Shake V2 + Comprehensive Teleport System
-    Version: 2.4
+    Description: Advanced auto fishing script with Instant Reel + Auto Drop Bobber + Auto Shake V2 + Comprehensive Teleport System + NEW EXPLOIT FEATURES
+    Version: 3.0 - 🔥 EXPLOIT EDITION 🔥
     GitHub: https://github.com/MELLISAEFFENDY/apakah
     
     ⚡ NEW: Instant Reel Module - Lightning fast reel system with anti-detection
     🎣 NEW: Auto Drop Bobber - Automatically drops and recasts bobber when no fish bites
     👻 NEW: Auto Shake V2 - Invisible and ultra-fast shake system
     🚀 NEW: Teleport System - Advanced teleport with multiple methods and locations
+    
+    🔥 EXPLOIT FEATURES 🔥
+    💰 Auto Sell System - Uses selleverything/SellAll remotes
+    🏆 Auto Quest System - Auto claim & select quests using ReputationQuests
+    💎 Auto Treasure Hunter - Auto hunt treasures using treasure remotes
+    🎲 Auto Skin Crate Spinner - Auto spin crates using SkinCrates remotes
+    🥚 Auto Egg Opener - Auto open eggs using egg remotes
+    
     🎨 UI: Uses OrionLib (ui.lua) for professional interface
 ]]
 
@@ -26,6 +34,16 @@ local characterPosition = nil
 local connections = {}
 local lastCastTime = 0
 local bobberDropTimer = 0
+
+--// New Feature Variables
+local autoSellEnabled = false
+local autoQuestEnabled = false
+local autoTreasureEnabled = false
+local autoSkinCrateEnabled = false
+local autoEggEnabled = false
+local lastSellTime = 0
+local lastQuestCheck = 0
+local lastTreasureCheck = 0
 
 --// Load UI Library
 local OrionLib
@@ -157,6 +175,272 @@ local function findRod()
         end
     end
     return nil
+end
+
+--// ========== NEW EXPLOIT FUNCTIONS ========== //
+
+--// Auto Sell System
+local function performAutoSell()
+    if not autoSellEnabled or tick() - lastSellTime < 5 then
+        return false
+    end
+    
+    lastSellTime = tick()
+    local success = false
+    
+    -- Try multiple sell methods found in remotes
+    pcall(function()
+        -- Method 1: selleverything
+        local sellEverything = ReplicatedStorage:FindFirstChild("events") and ReplicatedStorage.events:FindFirstChild("selleverything")
+        if sellEverything then
+            sellEverything:InvokeServer()
+            success = true
+            return
+        end
+    end)
+    
+    pcall(function()
+        -- Method 2: SellAll
+        local sellAll = ReplicatedStorage:FindFirstChild("events") and ReplicatedStorage.events:FindFirstChild("SellAll")
+        if sellAll then
+            sellAll:InvokeServer()
+            success = true
+            return
+        end
+    end)
+    
+    pcall(function()
+        -- Method 3: Sell individual items
+        local sell = ReplicatedStorage:FindFirstChild("events") and ReplicatedStorage.events:FindFirstChild("Sell")
+        if sell then
+            sell:InvokeServer("all")
+            success = true
+            return
+        end
+    end)
+    
+    return success
+end
+
+--// Auto Quest System
+local function performAutoQuest()
+    if not autoQuestEnabled or tick() - lastQuestCheck < 10 then
+        return false
+    end
+    
+    lastQuestCheck = tick()
+    local success = false
+    
+    -- Try to complete quests using discovered remotes
+    pcall(function()
+        -- Auto claim reputation quests
+        local claimQuest = ReplicatedStorage.packages.Net:FindFirstChild("RE/ReputationQuests/ClaimQuest")
+        if claimQuest then
+            claimQuest:FireServer()
+            success = true
+        end
+    end)
+    
+    pcall(function()
+        -- Auto select new quests
+        local selectQuest = ReplicatedStorage.packages.Net:FindFirstChild("RE/ReputationQuests/SelectQuest")
+        if selectQuest then
+            selectQuest:FireServer()
+            success = true
+        end
+    end)
+    
+    pcall(function()
+        -- Group reward claiming
+        local claimGroupReward = ReplicatedStorage:FindFirstChild("events") and ReplicatedStorage.events:FindFirstChild("claimGroupReward")
+        if claimGroupReward then
+            claimGroupReward:FireServer()
+            success = true
+        end
+    end)
+    
+    return success
+end
+
+--// Auto Treasure Hunter
+local function performAutoTreasure()
+    if not autoTreasureEnabled or tick() - lastTreasureCheck < 15 then
+        return false
+    end
+    
+    lastTreasureCheck = tick()
+    local success = false
+    
+    -- Try treasure hunting using discovered remotes
+    pcall(function()
+        -- Open treasures automatically
+        local openTreasure = ReplicatedStorage:FindFirstChild("events") and ReplicatedStorage.events:FindFirstChild("open_treasure")
+        if openTreasure then
+            openTreasure:FireServer()
+            success = true
+        end
+    end)
+    
+    pcall(function()
+        -- Get treasure map coordinates
+        local getTreasureCoords = ReplicatedStorage:FindFirstChild("events") and ReplicatedStorage.events:FindFirstChild("GetTreasureMapCoordinates")
+        if getTreasureCoords then
+            getTreasureCoords:FireServer()
+            success = true
+        end
+    end)
+    
+    pcall(function()
+        -- Load/spawn treasures
+        local loadTreasure = ReplicatedStorage:FindFirstChild("events") and ReplicatedStorage.events:FindFirstChild("load_treasure")
+        if loadTreasure then
+            loadTreasure:FireServer()
+            success = true
+        end
+    end)
+    
+    return success
+end
+
+--// Auto Skin Crate Spinner
+local function performAutoSkinCrate()
+    if not autoSkinCrateEnabled then
+        return false
+    end
+    
+    local success = false
+    
+    -- Try skin crate operations
+    pcall(function()
+        -- Open skin crates
+        local requestOpenSkinCrates = ReplicatedStorage.packages.Net:FindFirstChild("RF/RequestOpenSkinCrates")
+        if requestOpenSkinCrates then
+            requestOpenSkinCrates:InvokeServer()
+            success = true
+        end
+    end)
+    
+    pcall(function()
+        -- Spin skin crates
+        local requestSpin = ReplicatedStorage.packages.Net:FindFirstChild("RF/SkinCrates/RequestSpin")
+        if requestSpin then
+            requestSpin:InvokeServer()
+            success = true
+        end
+    end)
+    
+    pcall(function()
+        -- Spin mission rewards
+        local spinReward = ReplicatedStorage.packages.Net:FindFirstChild("RE/TimeMission/SpinReward")
+        if spinReward then
+            spinReward:FireServer()
+            success = true
+        end
+    end)
+    
+    return success
+end
+
+--// Auto Egg Opener
+local function performAutoEgg()
+    if not autoEggEnabled then
+        return false
+    end
+    
+    local success = false
+    
+    pcall(function()
+        -- Open eggs automatically
+        local openEgg = ReplicatedStorage:FindFirstChild("events") and ReplicatedStorage.events:FindFirstChild("Open Egg")
+        if openEgg then
+            openEgg:FireServer()
+            success = true
+        end
+    end)
+    
+    return success
+end
+
+--// Auto Crafting System
+local function performAutoCraft()
+    local success = false
+    
+    -- Try crafting operations
+    pcall(function()
+        -- Check if we can craft
+        local canCraft = ReplicatedStorage:FindFirstChild("events") and ReplicatedStorage.events:FindFirstChild("CanCraft")
+        if canCraft then
+            local canCraftResult = canCraft:InvokeServer()
+            if canCraftResult then
+                -- Attempt to craft
+                local attemptCraft = ReplicatedStorage.events:FindFirstChild("AttemptCraft")
+                if attemptCraft then
+                    attemptCraft:InvokeServer()
+                    success = true
+                end
+            end
+        end
+    end)
+    
+    return success
+end
+
+--// Auto Enchantment System
+local function performAutoEnchant()
+    local success = false
+    
+    pcall(function()
+        -- Try enchanting
+        local enchant = ReplicatedStorage:FindFirstChild("events") and ReplicatedStorage.events:FindFirstChild("enchant")
+        if enchant then
+            enchant:InvokeServer()
+            success = true
+        end
+    end)
+    
+    return success
+end
+
+--// Enhanced Teleport Functions using discovered remotes
+local function enhancedTeleport(destination)
+    local success = false
+    
+    -- Method 1: RequestTeleportCFrame (coordinates)
+    pcall(function()
+        local requestTeleportCFrame = ReplicatedStorage.packages.Net:FindFirstChild("RF/RequestTeleportCFrame")
+        if requestTeleportCFrame and destination.cframe then
+            requestTeleportCFrame:InvokeServer(destination.cframe)
+            success = true
+            return
+        end
+    end)
+    
+    -- Method 2: TeleportService (service-based)
+    pcall(function()
+        local teleportService = ReplicatedStorage.packages.Net:FindFirstChild("RE/TeleportService/RequestTeleport")
+        if teleportService and not success then
+            teleportService:FireServer(destination)
+            success = true
+            return
+        end
+    end)
+    
+    -- Method 3: RequestArea (area-based)
+    pcall(function()
+        local requestArea = ReplicatedStorage.packages.Net:FindFirstChild("RE/RequestArea")
+        if requestArea and destination.name and not success then
+            requestArea:FireServer(destination.name)
+            success = true
+            return
+        end
+    end)
+    
+    -- Fallback: Use existing teleport system
+    if not success and TeleportSystem then
+        success = TeleportSystem.teleportToPlace and TeleportSystem.teleportToPlace(destination.name)
+    end
+    
+    return success
 end
 
 --// Auto Shake V2 Advanced Functions
@@ -1055,6 +1339,199 @@ TeleportUtilitiesSection:AddButton({
     end    
 })
 
+--// 🔥 Exploit Features Tab
+local ExploitTab = Window:MakeTab({
+    Name = "🔥 Exploit",
+    Icon = "rbxassetid://4483345875",
+    PremiumOnly = false
+})
+
+local AutoSellSection = ExploitTab:AddSection({
+    Name = "💰 Auto Sell System"
+})
+
+AutoSellSection:AddToggle({
+    Name = "Auto Sell Everything",
+    Default = false,
+    Callback = function(Value)
+        autoSellEnabled = Value
+        if Value then
+            print("🔥 Auto Sell: ENABLED - Will auto-sell all items every 5 seconds")
+        else
+            print("❌ Auto Sell: Disabled")
+        end
+    end    
+})
+
+AutoSellSection:AddButton({
+    Name = "Sell All Items Now",
+    Callback = function()
+        local success = performAutoSell()
+        if success then
+            print("💰 Successfully sold all items!")
+        else
+            print("❌ Failed to sell items")
+        end
+    end    
+})
+
+local AutoQuestSection = ExploitTab:AddSection({
+    Name = "🏆 Auto Quest System"
+})
+
+AutoQuestSection:AddToggle({
+    Name = "Auto Quest Management",
+    Default = false,
+    Callback = function(Value)
+        autoQuestEnabled = Value
+        if Value then
+            print("🔥 Auto Quest: ENABLED - Will auto-claim and select quests")
+        else
+            print("❌ Auto Quest: Disabled")
+        end
+    end    
+})
+
+AutoQuestSection:AddButton({
+    Name = "Claim All Quests Now",
+    Callback = function()
+        local success = performAutoQuest()
+        if success then
+            print("🏆 Successfully claimed quests!")
+        else
+            print("❌ Failed to claim quests")
+        end
+    end    
+})
+
+local AutoTreasureSection = ExploitTab:AddSection({
+    Name = "💎 Auto Treasure Hunter"
+})
+
+AutoTreasureSection:AddToggle({
+    Name = "Auto Treasure Hunting",
+    Default = false,
+    Callback = function(Value)
+        autoTreasureEnabled = Value
+        if Value then
+            print("🔥 Auto Treasure: ENABLED - Will auto-hunt treasures every 15 seconds")
+        else
+            print("❌ Auto Treasure: Disabled")
+        end
+    end    
+})
+
+AutoTreasureSection:AddButton({
+    Name = "Hunt Treasures Now",
+    Callback = function()
+        local success = performAutoTreasure()
+        if success then
+            print("💎 Successfully hunted treasures!")
+        else
+            print("❌ Failed to hunt treasures")
+        end
+    end    
+})
+
+local AutoCrateSection = ExploitTab:AddSection({
+    Name = "🎲 Auto Skin Crate Spinner"
+})
+
+AutoCrateSection:AddToggle({
+    Name = "Auto Spin Skin Crates",
+    Default = false,
+    Callback = function(Value)
+        autoSkinCrateEnabled = Value
+        if Value then
+            print("🔥 Auto Crate Spin: ENABLED - Will auto-spin available crates")
+        else
+            print("❌ Auto Crate Spin: Disabled")
+        end
+    end    
+})
+
+AutoCrateSection:AddButton({
+    Name = "Spin Crates Now",
+    Callback = function()
+        local success = performAutoSkinCrate()
+        if success then
+            print("🎲 Successfully spun skin crates!")
+        else
+            print("❌ Failed to spin crates")
+        end
+    end    
+})
+
+local AutoEggSection = ExploitTab:AddSection({
+    Name = "🥚 Auto Egg Opener"
+})
+
+AutoEggSection:AddToggle({
+    Name = "Auto Open Eggs",
+    Default = false,
+    Callback = function(Value)
+        autoEggEnabled = Value
+        if Value then
+            print("🔥 Auto Egg Opener: ENABLED - Will auto-open available eggs")
+        else
+            print("❌ Auto Egg Opener: Disabled")
+        end
+    end    
+})
+
+AutoEggSection:AddButton({
+    Name = "Open Eggs Now",
+    Callback = function()
+        local success = performAutoEgg()
+        if success then
+            print("🥚 Successfully opened eggs!")
+        else
+            print("❌ Failed to open eggs")
+        end
+    end    
+})
+
+local AutoCraftSection = ExploitTab:AddSection({
+    Name = "⚒️ Auto Crafting & Enchant"
+})
+
+AutoCraftSection:AddButton({
+    Name = "Auto Craft Items",
+    Callback = function()
+        local success = performAutoCraft()
+        if success then
+            print("⚒️ Successfully crafted items!")
+        else
+            print("❌ Failed to craft items")
+        end
+    end    
+})
+
+AutoCraftSection:AddButton({
+    Name = "Auto Enchant Items",
+    Callback = function()
+        local success = performAutoEnchant()
+        if success then
+            print("✨ Successfully enchanted items!")
+        else
+            print("❌ Failed to enchant items")
+        end
+    end    
+})
+
+local ExploitInfoSection = ExploitTab:AddSection({
+    Name = "ℹ️ Exploit Info"
+})
+
+ExploitInfoSection:AddLabel("🔥 NEW: Advanced exploit features discovered!")
+ExploitInfoSection:AddLabel("💰 Auto Sell: Uses selleverything/SellAll remotes")
+ExploitInfoSection:AddLabel("🏆 Auto Quest: Uses ReputationQuests remotes")
+ExploitInfoSection:AddLabel("💎 Auto Treasure: Uses treasure hunting remotes")
+ExploitInfoSection:AddLabel("🎲 Auto Crates: Uses SkinCrates spin remotes")
+ExploitInfoSection:AddLabel("🥚 Auto Eggs: Uses egg opening remotes")
+ExploitInfoSection:AddLabel("⚒️ Auto Craft: Uses CanCraft/AttemptCraft remotes")
+ExploitInfoSection:AddLabel("✨ Auto Enchant: Uses enchant remotes")
+
 --// Settings Tab
 local SettingsTab = Window:MakeTab({
     Name = "⚙️ Settings",
@@ -1066,12 +1543,14 @@ local InfoSection = SettingsTab:AddSection({
     Name = "Script Information"
 })
 
-InfoSection:AddLabel("Script Version: 1.5")
+InfoSection:AddLabel("Script Version: 3.0 - 🔥 EXPLOIT EDITION 🔥")
 InfoSection:AddLabel("Created for: Roblox Fisch")
 InfoSection:AddLabel("Status: ✅ Active")
-InfoSection:AddLabel("New: Teleport System with multiple methods!")
-InfoSection:AddLabel("New: Auto Shake V2 (Invisible) feature!")
-InfoSection:AddLabel("New: Auto Drop Bobber feature added!")
+InfoSection:AddLabel("🔥 NEW: Advanced exploit features added!")
+InfoSection:AddLabel("💰 Auto Sell, 🏆 Auto Quest, 💎 Auto Treasure")
+InfoSection:AddLabel("🎲 Auto Skin Crates, 🥚 Auto Egg Opener")
+InfoSection:AddLabel("🚀 Enhanced teleport with 3 methods!")
+InfoSection:AddLabel("👻 Auto Shake V2 (Invisible) feature!")
 
 local ControlSection = SettingsTab:AddSection({
     Name = "Script Controls"
@@ -1318,6 +1797,33 @@ connections.mainLoop = RunService.Heartbeat:Connect(function()
                 InstantReel.performReel()
             end
         end
+        
+        --// 🔥 NEW EXPLOIT FEATURES EXECUTION 🔥
+        
+        -- Auto Sell System
+        if autoSellEnabled then
+            performAutoSell()
+        end
+        
+        -- Auto Quest System
+        if autoQuestEnabled then
+            performAutoQuest()
+        end
+        
+        -- Auto Treasure Hunter
+        if autoTreasureEnabled then
+            performAutoTreasure()
+        end
+        
+        -- Auto Skin Crate Spinner
+        if autoSkinCrateEnabled then
+            performAutoSkinCrate()
+        end
+        
+        -- Auto Egg Opener
+        if autoEggEnabled then
+            performAutoEgg()
+        end
     end)
 end)
 
@@ -1328,6 +1834,42 @@ end)
 
 --// Initialize
 OrionLib:Init()
+
+--// Startup Notifications
+wait(1)
+OrionLib:MakeNotification({
+    Name = "🔥 EXPLOIT EDITION LOADED! 🔥",
+    Content = "Auto Fishing Script v3.0 with new exploit features!",
+    Image = "rbxassetid://4483345875",
+    Time = 5
+})
+
+wait(2)
+OrionLib:MakeNotification({
+    Name = "🆕 New Features Added!",
+    Content = "💰 Auto Sell, 🏆 Auto Quest, 💎 Auto Treasure, 🎲 Auto Crates, 🥚 Auto Eggs!",
+    Image = "rbxassetid://4483345875",
+    Time = 7
+})
+
+wait(3)
+OrionLib:MakeNotification({
+    Name = "📍 How to Use",
+    Content = "Check the '🔥 Exploit' tab for all new automation features!",
+    Image = "rbxassetid://4483345875",
+    Time = 5
+})
+
+print("🔥🔥🔥 AUTO FISHING V3.0 - EXPLOIT EDITION LOADED! 🔥🔥🔥")
+print("💰 Auto Sell: Automatically sell all items")
+print("🏆 Auto Quest: Auto claim and select quests")
+print("💎 Auto Treasure: Auto hunt treasures")
+print("🎲 Auto Crates: Auto spin skin crates")
+print("🥚 Auto Eggs: Auto open eggs")
+print("🚀 Enhanced Teleport: 3 different teleport methods")
+print("👻 Auto Shake V2: Invisible ultra-fast shaking")
+print("📱 Check the '🔥 Exploit' tab in GUI for controls!")
+print("🔥🔥🔥 READY TO EXPLOIT! 🔥🔥🔥")
 
 --// Notification
 OrionLib:MakeNotification({
