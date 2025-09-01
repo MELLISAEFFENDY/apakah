@@ -2,7 +2,7 @@
     Auto Fishing Script for Roblox Fisch
     Created by: MELLISAEFFENDY
     Description: Advanced auto fishing script with Instant Reel + Auto Drop Bobber + Auto Shake V2 + Comprehensive Teleport System
-    Version: 2.0
+    Version: 2.2
     GitHub: https://github.com/MELLISAEFFENDY/apakah
     
     ⚡ NEW: Instant Reel Module - Lightning fast reel system with anti-detection
@@ -159,6 +159,100 @@ local function findRod()
     return nil
 end
 
+--// Auto Shake V2 Advanced Functions
+local function performInstantShake()
+    local rod = findRod()
+    if not rod then return false end
+    
+    local success = false
+    
+    -- Method 1: Direct event firing
+    pcall(function()
+        if rod.events and rod.events:FindFirstChild('shake') then
+            for i = 1, 5 do
+                rod.events.shake:FireServer(100, true)
+                success = true
+            end
+        end
+    end)
+    
+    -- Method 2: Alternative shake events
+    pcall(function()
+        if ReplicatedStorage.events then
+            local events = ReplicatedStorage.events
+            if events:FindFirstChild('shakeCompleted') then
+                events.shakeCompleted:FireServer(100, true)
+                success = true
+            end
+            if events:FindFirstChild('completeShake') then
+                events.completeShake:FireServer(100)
+                success = true
+            end
+            if events:FindFirstChild('rodshake') then
+                events.rodshake:FireServer(100, true)
+                success = true
+            end
+        end
+    end)
+    
+    return success
+end
+
+local function setupShakeUIDestroyer()
+    -- Prevent shake UI from appearing at all
+    local connection = lp.PlayerGui.ChildAdded:Connect(function(child)
+        if child.Name == 'shakeui' and flags['autoshakev2'] then
+            -- Immediately fire shake events
+            performInstantShake()
+            -- Destroy UI instantly
+            child:Destroy()
+        end
+    end)
+    
+    return connection
+end
+
+--// Auto Shake V2 Hook System (Advanced)
+local function setupAutoShakeV2Hook()
+    if not hookmetamethod then return false end
+    
+    local originalNamecall
+    originalNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+        local method = getnamecallmethod()
+        local args = {...}
+        
+        -- Hook GUI creation to prevent shake UI
+        if method == "WaitForChild" and flags['autoshakev2'] then
+            if args[1] == "shakeui" then
+                -- Immediately perform shake instead of showing UI
+                spawn(function()
+                    performInstantShake()
+                end)
+                -- Return a fake GUI that gets destroyed immediately
+                local fakeGui = Instance.new("ScreenGui")
+                fakeGui.Name = "shakeui"
+                spawn(function()
+                    wait(0.001)
+                    fakeGui:Destroy()
+                end)
+                return fakeGui
+            end
+        end
+        
+        return originalNamecall(self, ...)
+    end)
+    
+    return true
+end
+
+--// Initialize Auto Shake V2 Systems
+if hookmetamethod then
+    setupAutoShakeV2Hook()
+    print("🔥 Auto Shake V2: Hook system initialized!")
+else
+    print("⚠️ Auto Shake V2: Using standard method (no hook available)")
+end
+
 local function checkFunc(func)
     return typeof(func) == 'function'
 end
@@ -253,6 +347,19 @@ local AutoShakeV2Toggle = FishingSection:AddToggle({
     Save = true,
     Callback = function(Value)
         flags['autoshakev2'] = Value
+        if Value then
+            OrionLib:MakeNotification({
+                Name = "👻 Auto Shake V2",
+                Content = "Invisible ultra-fast shake system enabled! Shake minigames will be completed instantly.",
+                Time = 3
+            })
+        else
+            OrionLib:MakeNotification({
+                Name = "👻 Auto Shake V2",
+                Content = "Auto Shake V2 disabled",
+                Time = 2
+            })
+        end
     end    
 })
 
@@ -879,6 +986,60 @@ ControlSection:AddButton({
     end    
 })
 
+--// Auto Shake V2 Testing Section
+local AutoShakeTestSection = SettingsTab:AddSection({
+    Name = "👻 Auto Shake V2 Testing"
+})
+
+AutoShakeTestSection:AddButton({
+    Name = "🧪 Test Auto Shake V2",
+    Callback = function()
+        local success = performInstantShake()
+        OrionLib:MakeNotification({
+            Name = "🧪 Auto Shake V2 Test",
+            Content = success and "✅ Auto Shake V2 working correctly!" or "❌ Auto Shake V2 test failed - check if you have a rod equipped",
+            Time = 3
+        })
+    end    
+})
+
+AutoShakeTestSection:AddButton({
+    Name = "🔍 Check Shake Events",
+    Callback = function()
+        local rod = findRod()
+        local status = ""
+        
+        if not rod then
+            status = "❌ No fishing rod found"
+        else
+            status = "✅ Rod found: " .. rod.Name .. "\n"
+            
+            if rod.events and rod.events:FindFirstChild('shake') then
+                status = status .. "✅ Rod shake event available\n"
+            else
+                status = status .. "❌ Rod shake event not found\n"
+            end
+            
+            if ReplicatedStorage.events then
+                local replicatedEvents = {"shakeCompleted", "completeShake", "rodshake"}
+                for _, eventName in pairs(replicatedEvents) do
+                    if ReplicatedStorage.events:FindFirstChild(eventName) then
+                        status = status .. "✅ " .. eventName .. " available\n"
+                    end
+                end
+            end
+        end
+        
+        OrionLib:MakeNotification({
+            Name = "🔍 Auto Shake V2 Status",
+            Content = status,
+            Time = 5
+        })
+    end    
+})
+
+AutoShakeTestSection:AddLabel("Hook Status: " .. (hookmetamethod and "✅ Available" or "❌ Not Available"))
+
 --// Main Loop
 connections.mainLoop = RunService.Heartbeat:Connect(function()
     pcall(function()
@@ -906,21 +1067,19 @@ connections.mainLoop = RunService.Heartbeat:Connect(function()
             end
         end
         
-        -- Auto Shake V2 (Invisible & Fast)
+        -- Auto Shake V2 (Invisible & Ultra Fast)
         if flags['autoshakev2'] then
-            local rod = findRod()
-            if rod and rod.events and rod.events:FindFirstChild('shake') then
-                -- Check if shake event should be triggered
-                local shakeUI = lp.PlayerGui:FindFirstChild('shakeui')
-                if shakeUI then
-                    -- Instantly fire shake event without UI interaction
-                    rod.events.shake:FireServer(100, true)
-                    -- Hide the shake UI to make it invisible
-                    shakeUI.Enabled = false
-                    wait(0.1)
-                    shakeUI.Enabled = true
-                end
+            -- Check for existing shake UI and handle it
+            local shakeUI = lp.PlayerGui:FindFirstChild('shakeui')
+            if shakeUI then
+                -- Perform instant shake
+                performInstantShake()
+                -- Destroy the UI to make it invisible
+                shakeUI:Destroy()
             end
+            
+            -- Setup continuous UI destroyer (runs once per cycle)
+            setupShakeUIDestroyer()
         end
         
         -- Auto Cast
