@@ -29,46 +29,80 @@ local bobberDropTimer = 0
 
 --// Load UI Library
 local OrionLib
-if readfile and isfile and isfile('ui.lua') then
-    OrionLib = loadstring(readfile('ui.lua'))()
-else
-    -- Fallback: Load OrionLib from our repository
-    OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/ui.lua'))()
+pcall(function()
+    if readfile and isfile and isfile('ui.lua') then
+        OrionLib = loadstring(readfile('ui.lua'))()
+    else
+        -- Fallback: Load OrionLib from our repository
+        OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/ui.lua'))()
+    end
+end)
+
+if not OrionLib then
+    error("❌ Failed to load OrionLib UI library!")
 end
 
 --// Load Instant Reel Module
 local InstantReel
-if readfile and isfile and isfile('instant-reel.lua') then
-    InstantReel = loadstring(readfile('instant-reel.lua'))()
-else
-    -- Fallback: Load from GitHub
-    InstantReel = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/instant-reel.lua'))()
-end
+pcall(function()
+    if readfile and isfile and isfile('instant-reel.lua') then
+        InstantReel = loadstring(readfile('instant-reel.lua'))()
+    else
+        -- Fallback: Load from GitHub
+        InstantReel = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/instant-reel.lua'))()
+    end
+end)
 
 --// Load Teleport System
 local TeleportSystem
-if readfile and isfile and isfile('teleport-system.lua') then
-    TeleportSystem = loadstring(readfile('teleport-system.lua'))()
-else
-    -- Fallback: Load from GitHub
-    TeleportSystem = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/teleport-system.lua'))()
-end
+pcall(function()
+    if readfile and isfile and isfile('teleport-system.lua') then
+        TeleportSystem = loadstring(readfile('teleport-system.lua'))()
+    else
+        -- Fallback: Load from GitHub
+        TeleportSystem = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/teleport-system.lua'))()
+    end
+end)
 
--- Initialize modules
-InstantReel = InstantReel.init()
+-- Initialize modules safely
+if InstantReel and InstantReel.init then
+    InstantReel = InstantReel.init()
+    print("✅ InstantReel module initialized successfully")
+else
+    warn("⚠️ InstantReel module not loaded or init function not available")
+    -- Create fallback InstantReel object
+    InstantReel = {
+        setEnabled = function() end,
+        setInstantMode = function() end,
+        setFastMode = function() end,
+        setDetectionAvoidance = function() end,
+        performReel = function() end,
+        printTestResults = function() print("InstantReel not available") end,
+        getStatistics = function() return {totalReels=0, successfulReels=0, successRate=0, averageTime=0} end,
+        resetStatistics = function() end
+    }
+end
 
 -- Initialize Teleport System safely
 if TeleportSystem and TeleportSystem.enableAutoReturn then
     TeleportSystem.enableAutoReturn()
+    print("✅ TeleportSystem initialized successfully")
 else
-    warn("TeleportSystem not loaded properly or enableAutoReturn function not available")
+    warn("⚠️ TeleportSystem not loaded properly or enableAutoReturn function not available")
 end
 
 --// Helper Functions
 local function safeTeleportCall(func, ...)
-    if TeleportSystem and TeleportSystem[func] then
-        return TeleportSystem[func](...)
+    if TeleportSystem and type(TeleportSystem) == "table" and TeleportSystem[func] and type(TeleportSystem[func]) == "function" then
+        local success, result = pcall(TeleportSystem[func], ...)
+        if success then
+            return true, result or "Teleport successful"
+        else
+            warn("TeleportSystem call failed: " .. tostring(result))
+            return false, "Teleport failed: " .. tostring(result)
+        end
     else
+        warn("⚠️ TeleportSystem function not available: " .. tostring(func))
         return false, "TeleportSystem not available"
     end
 end
@@ -366,10 +400,10 @@ QuickTeleportSection:AddButton({
 QuickTeleportSection:AddButton({
     Name = "🌊 Deep Ocean",
     Callback = function()
-        local success, msg = TeleportSystem.teleportToLocation("Ocean", "cframe", false)
+        local success, msg = safeTeleportCall("teleportToLocation", "Ocean", "cframe", false)
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
-            Content = msg,
+            Content = msg or (success and "Teleported successfully" or "Teleport failed"),
             Time = 3
         })
     end    
@@ -378,10 +412,10 @@ QuickTeleportSection:AddButton({
 QuickTeleportSection:AddButton({
     Name = "🍄 Mushgrove Swamp", 
     Callback = function()
-        local success, msg = TeleportSystem.teleportToLocation("Mushgrove", "cframe", false)
+        local success, msg = safeTeleportCall("teleportToLocation", "Mushgrove", "cframe", false)
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
-            Content = msg,
+            Content = msg or (success and "Teleported successfully" or "Teleport failed"),
             Time = 3
         })
     end    
@@ -390,7 +424,7 @@ QuickTeleportSection:AddButton({
 QuickTeleportSection:AddButton({
     Name = "🏝️ Roslit Bay",
     Callback = function()
-        local success, msg = TeleportSystem.teleportToLocation("Roslit Bay", "cframe", false)
+        local success, msg = safeTeleportCall("teleportToLocation", "Roslit Bay", "cframe", false)
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
             Content = msg,
@@ -402,7 +436,7 @@ QuickTeleportSection:AddButton({
 QuickTeleportSection:AddButton({
     Name = "❄️ Snowcap Island",
     Callback = function()
-        local success, msg = TeleportSystem.teleportToLocation("Snowcap Island", "cframe", false)
+        local success, msg = safeTeleportCall("teleportToLocation", "Snowcap Island", "cframe", false)
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
             Content = msg,
@@ -414,7 +448,7 @@ QuickTeleportSection:AddButton({
 QuickTeleportSection:AddButton({
     Name = "🌴 Sunstone Island",
     Callback = function()
-        local success, msg = TeleportSystem.teleportToLocation("Sunstone Island", "cframe", false)
+        local success, msg = safeTeleportCall("teleportToLocation", "Sunstone Island", "cframe", false)
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
             Content = msg,
@@ -431,7 +465,7 @@ local SpecialLocationsSection = TeleportTab:AddSection({
 SpecialLocationsSection:AddButton({
     Name = "🕳️ The Depths Entrance",
     Callback = function()
-        local success, msg = TeleportSystem.teleportToLocation("The Depths", "cframe", false)
+        local success, msg = safeTeleportCall("teleportToLocation", "The Depths", "cframe", false)
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
             Content = msg,
@@ -443,7 +477,7 @@ SpecialLocationsSection:AddButton({
 SpecialLocationsSection:AddButton({
     Name = "💀 Forsaken Shores",
     Callback = function()
-        local success, msg = TeleportSystem.teleportToLocation("Forsaken Shores", "cframe", false)
+        local success, msg = safeTeleportCall("teleportToLocation", "Forsaken Shores", "cframe", false)
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
             Content = msg,
@@ -455,7 +489,7 @@ SpecialLocationsSection:AddButton({
 SpecialLocationsSection:AddButton({
     Name = "🏔️ Vertigo",
     Callback = function()
-        local success, msg = TeleportSystem.teleportToLocation("Vertigo", "cframe", false)
+        local success, msg = safeTeleportCall("teleportToLocation", "Vertigo", "cframe", false)
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
             Content = msg,
@@ -467,7 +501,7 @@ SpecialLocationsSection:AddButton({
 SpecialLocationsSection:AddButton({
     Name = "🏛️ Ancient Isle",
     Callback = function()
-        local success, msg = TeleportSystem.teleportToLocation("Ancient Isle", "cframe", false)
+        local success, msg = safeTeleportCall("teleportToLocation", "Ancient Isle", "cframe", false)
         OrionLib:MakeNotification({
             Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
             Content = msg,
@@ -559,7 +593,7 @@ PlayerTeleportSection:AddButton({
     Name = "🏃 Teleport to Player",
     Callback = function()
         if targetPlayer ~= "" then
-            local success = TeleportSystem.teleportToPlayer(targetPlayer)
+            local success = safeTeleportCall("teleportToPlayer", targetPlayer)
             OrionLib:MakeNotification({
                 Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
                 Content = success and "Teleported to " .. targetPlayer or "Failed to find player: " .. targetPlayer,
@@ -584,7 +618,7 @@ TeleportUtilitiesSection:AddButton({
     Name = "💾 Save Current Location",
     Callback = function()
         local locationName = "CustomLocation_" .. os.time()
-        local success = TeleportSystem.saveCurrentLocation(locationName)
+        local success = safeTeleportCall("saveCurrentLocation", locationName)
         OrionLib:MakeNotification({
             Name = success and "✅ Location Saved" or "❌ Save Failed",
             Content = success and "Location saved as: " .. locationName or "Failed to save current location",
