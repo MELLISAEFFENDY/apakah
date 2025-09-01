@@ -145,26 +145,35 @@ TeleportSystem.itemLocations = {
 --// Safe Teleport Function
 function TeleportSystem.safeTeleport(targetCFrame, teleportName)
     local success, errorMsg = pcall(function()
-        if not humanoidRootPart then
-            character = LocalPlayer.Character
-            if character then
-                humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-            end
+        -- Safely get character and HumanoidRootPart
+        local character = LocalPlayer.Character
+        if not character then
+            character = LocalPlayer.CharacterAdded:Wait()
         end
         
-        if not humanoidRootPart then
-            error("HumanoidRootPart not found")
+        local hrp = character:WaitForChild("HumanoidRootPart", 5)
+        if not hrp then
+            error("HumanoidRootPart not found or timeout")
         end
         
         if typeof(targetCFrame) ~= "CFrame" then
-            error("Invalid CFrame provided")
+            error("Invalid CFrame provided: " .. tostring(targetCFrame))
+        end
+        
+        -- Ensure the CFrame is valid
+        if not targetCFrame.Position then
+            error("CFrame has no valid position")
         end
         
         -- Store current position for safety
-        local oldPosition = humanoidRootPart.CFrame
+        local oldPosition = hrp.CFrame
         
-        -- Perform teleport
-        humanoidRootPart.CFrame = targetCFrame
+        -- Perform teleport with additional safety checks
+        if hrp.Parent and hrp.Parent == character then
+            hrp.CFrame = targetCFrame
+        else
+            error("HumanoidRootPart is not properly parented")
+        end
         
         -- Wait a frame to ensure teleport completed
         wait(0.1)

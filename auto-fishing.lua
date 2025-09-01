@@ -2,7 +2,7 @@
     Auto Fishing Script for Roblox Fisch
     Created by: MELLISAEFFENDY
     Description: Advanced auto fishing script with Instant Reel + Auto Drop Bobber + Auto Shake V2 + Comprehensive Teleport System
-    Version: 2.2
+    Version: 2.3
     GitHub: https://github.com/MELLISAEFFENDY/apakah
     
     ⚡ NEW: Instant Reel Module - Lightning fast reel system with anti-detection
@@ -203,9 +203,16 @@ local function setupShakeUIDestroyer()
     local connection = lp.PlayerGui.ChildAdded:Connect(function(child)
         if child.Name == 'shakeui' and flags['autoshakev2'] then
             -- Immediately fire shake events
-            performInstantShake()
-            -- Destroy UI instantly
-            child:Destroy()
+            spawn(function()
+                performInstantShake()
+            end)
+            -- Safely destroy UI without causing NULL parent errors
+            spawn(function()
+                wait(0.1) -- Small delay to prevent NULL parent error
+                if child and child.Parent then
+                    child:Destroy()
+                end
+            end)
         end
     end)
     
@@ -221,23 +228,8 @@ local function setupAutoShakeV2Hook()
         local method = getnamecallmethod()
         local args = {...}
         
-        -- Hook GUI creation to prevent shake UI
-        if method == "WaitForChild" and flags['autoshakev2'] then
-            if args[1] == "shakeui" then
-                -- Immediately perform shake instead of showing UI
-                spawn(function()
-                    performInstantShake()
-                end)
-                -- Return a fake GUI that gets destroyed immediately
-                local fakeGui = Instance.new("ScreenGui")
-                fakeGui.Name = "shakeui"
-                spawn(function()
-                    wait(0.001)
-                    fakeGui:Destroy()
-                end)
-                return fakeGui
-            end
-        end
+        -- Hook GUI creation to prevent shake UI - disabled to prevent errors
+        -- This was causing NULL parent errors, using alternative method instead
         
         return originalNamecall(self, ...)
     end)
@@ -289,6 +281,16 @@ local Window = OrionLib:MakeWindow({
     IntroText = "Auto Fishing Pro",
     IntroIcon = "rbxassetid://4483345875"
 })
+
+--// Initialize Auto Shake V2 UI Destroyer (One-time setup)
+local shakeUIConnection = nil
+spawn(function()
+    wait(1) -- Wait for UI to be ready
+    if not shakeUIConnection then
+        shakeUIConnection = setupShakeUIDestroyer()
+        print("🔥 Auto Shake V2: UI Destroyer initialized")
+    end
+end)
 
 --// Auto Fishing Tab
 local AutoFishingTab = Window:MakeTab({
@@ -1073,13 +1075,17 @@ connections.mainLoop = RunService.Heartbeat:Connect(function()
             local shakeUI = lp.PlayerGui:FindFirstChild('shakeui')
             if shakeUI then
                 -- Perform instant shake
-                performInstantShake()
-                -- Destroy the UI to make it invisible
-                shakeUI:Destroy()
+                spawn(function()
+                    performInstantShake()
+                end)
+                -- Safely destroy the UI to make it invisible
+                spawn(function()
+                    wait(0.05)
+                    if shakeUI and shakeUI.Parent then
+                        shakeUI:Destroy()
+                    end
+                end)
             end
-            
-            -- Setup continuous UI destroyer (runs once per cycle)
-            setupShakeUIDestroyer()
         end
         
         -- Auto Cast
