@@ -1066,16 +1066,9 @@ local ResetStatsButton = InstantReelSection:AddButton({
     end    
 })
 
---// Teleport Tab
+--// Enhanced Teleport Tab V2.0 - Category-based GPS System
 local TeleportTab = Window:MakeTab({
     Name = "🚀 Teleport",
-    Icon = "rbxassetid://4483345875",
-    PremiumOnly = false
-})
-
---// Teleport Tab V2.0 - Category-based GPS System
-local TeleportTab = Window:MakeTab({
-    Name = "🚀 Teleport V2",
     Icon = "rbxassetid://4483345875",
     PremiumOnly = false
 })
@@ -1098,6 +1091,9 @@ local selectedCategory = "First Sea Locations"
 local selectedLocation = ""
 local teleportMethod = "CFrame"
 
+-- Pre-declare LocationDropdown variable
+local LocationDropdown
+
 local CategoryDropdown = CategorySection:AddDropdown({
     Name = "Select Category",
     Default = "First Sea Locations",
@@ -1118,7 +1114,7 @@ local LocationSection = TeleportTab:AddSection({
     Name = "📍 Select Location"
 })
 
-local LocationDropdown = LocationSection:AddDropdown({
+LocationDropdown = LocationSection:AddDropdown({
     Name = "Select Location",
     Default = "",
     Options = teleportLoaded and TeleportSystem and TeleportSystem.getLocationNames and TeleportSystem.getLocationNames("First Sea Locations") or {"Loading..."},
@@ -1259,9 +1255,9 @@ local ItemsSection = TeleportTab:AddSection({
 local ItemDropdown = ItemsSection:AddDropdown({
     Name = "Select Item/Rod",
     Default = "",
-    Options = TeleportSystem.getItemNames(),
+    Options = teleportLoaded and TeleportSystem and TeleportSystem.getItemNames and TeleportSystem.getItemNames() or {"Loading..."},
     Callback = function(Value)
-        if Value and Value ~= "" then
+        if Value and Value ~= "" and TeleportSystem and TeleportSystem.teleportToItem then
             local success, msg = TeleportSystem.teleportToItem(Value)
             OrionLib:MakeNotification({
                 Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
@@ -1280,9 +1276,9 @@ local PlayersSection = TeleportTab:AddSection({
 local PlayerDropdown = PlayersSection:AddDropdown({
     Name = "Select Player",
     Default = "",
-    Options = TeleportSystem.getPlayerList(),
+    Options = teleportLoaded and TeleportSystem and TeleportSystem.getPlayerList and TeleportSystem.getPlayerList() or {"Loading..."},
     Callback = function(Value)
-        if Value and Value ~= "" then
+        if Value and Value ~= "" and TeleportSystem and TeleportSystem.teleportToPlayer then
             local success, msg = TeleportSystem.teleportToPlayer(Value)
             OrionLib:MakeNotification({
                 Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
@@ -1296,13 +1292,15 @@ local PlayerDropdown = PlayersSection:AddDropdown({
 PlayersSection:AddButton({
     Name = "🔄 Refresh Player List",
     Callback = function()
-        local newPlayers = TeleportSystem.getPlayerList()
-        PlayerDropdown:SetOptions(newPlayers)
-        OrionLib:MakeNotification({
-            Name = "🔄 Player List Updated",
-            Content = "Found " .. #newPlayers .. " players online",
-            Time = 2
-        })
+        if TeleportSystem and TeleportSystem.getPlayerList then
+            local newPlayers = TeleportSystem.getPlayerList()
+            PlayerDropdown:SetOptions(newPlayers)
+            OrionLib:MakeNotification({
+                Name = "🔄 Player List Updated",
+                Content = "Found " .. #newPlayers .. " players online",
+                Time = 2
+            })
+        end
     end    
 })
 
@@ -1314,24 +1312,28 @@ local QuickTeleportSection = TeleportTab:AddSection({
 QuickTeleportSection:AddButton({
     Name = "� Moosewood Docks",
     Callback = function()
-        local success, msg = TeleportSystem.teleportToPlace("Moosewood")
-        OrionLib:MakeNotification({
-            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
-            Content = msg,
-            Time = 3
-        })
+        if TeleportSystem and TeleportSystem.teleportToPlace then
+            local success, msg = TeleportSystem.teleportToPlace("Moosewood")
+            OrionLib:MakeNotification({
+                Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+                Content = msg,
+                Time = 3
+            })
+        end
     end    
 })
 
 QuickTeleportSection:AddButton({
     Name = "🌊 Deep Ocean",
     Callback = function()
-        local success, msg = TeleportSystem.teleportToFishArea("Deep Ocean")
-        OrionLib:MakeNotification({
-            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
-            Content = msg,
-            Time = 3
-        })
+        if TeleportSystem and TeleportSystem.teleportToFishArea then
+            local success, msg = TeleportSystem.teleportToFishArea("Deep Ocean")
+            OrionLib:MakeNotification({
+                Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+                Content = msg,
+                Time = 3
+            })
+        end
     end    
 })
 
