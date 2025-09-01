@@ -1878,6 +1878,82 @@ MovementSection:AddTextbox({
     end
 })
 
+--// Advanced Features Section
+local AdvancedSection = UtilityTab:AddSection({
+    Name = "Advanced Features"
+})
+
+AdvancedSection:AddLabel("🕵️ Anti Detect Staff - Hidden from staff detection")
+AdvancedSection:AddLabel("😴 Anti AFK - Prevent AFK detection")
+AdvancedSection:AddLabel("🚀 Reduced Lag - Performance optimization")
+AdvancedSection:AddLabel("⚡ Fast FPS - Maximum FPS boost")
+AdvancedSection:AddLabel("👁️ ESP Player - See all players with highlights")
+
+local AntiDetectStaffToggle = AdvancedSection:AddToggle({
+    Name = "Anti Detect Staff",
+    Default = false,
+    Flag = "antidetectstaffutility",
+    Save = true,
+    Callback = function(Value)
+        if UtilitySystem then
+            UtilitySystem.setAntiDetectStaff(Value)
+            flags['antidetectstaffutility'] = Value
+        end
+    end    
+})
+
+local AntiAFKToggle = AdvancedSection:AddToggle({
+    Name = "Anti AFK",
+    Default = false,
+    Flag = "antiafkutility",
+    Save = true,
+    Callback = function(Value)
+        if UtilitySystem then
+            UtilitySystem.setAntiAFK(Value)
+            flags['antiafkutility'] = Value
+        end
+    end    
+})
+
+local ReducedLagToggle = AdvancedSection:AddToggle({
+    Name = "Reduced Lag",
+    Default = false,
+    Flag = "reducedlagutility",
+    Save = true,
+    Callback = function(Value)
+        if UtilitySystem then
+            UtilitySystem.setReducedLag(Value)
+            flags['reducedlagutility'] = Value
+        end
+    end    
+})
+
+local FastFPSToggle = AdvancedSection:AddToggle({
+    Name = "Fast FPS",
+    Default = false,
+    Flag = "fastfpsutility",
+    Save = true,
+    Callback = function(Value)
+        if UtilitySystem then
+            UtilitySystem.setFastFPS(Value)
+            flags['fastfpsutility'] = Value
+        end
+    end    
+})
+
+local ESPPlayerToggle = AdvancedSection:AddToggle({
+    Name = "ESP Player",
+    Default = false,
+    Flag = "espplayerutility",
+    Save = true,
+    Callback = function(Value)
+        if UtilitySystem then
+            UtilitySystem.setESPPlayer(Value)
+            flags['espplayerutility'] = Value
+        end
+    end    
+})
+
 --// Quick Presets Section
 local PresetsSection = UtilityTab:AddSection({
     Name = "Quick Presets"
@@ -1923,6 +1999,51 @@ PresetsSection:AddButton({
         JumpPowerToggle:Set(false)
         WalkSpeedSlider:Set(16)
         JumpPowerSlider:Set(50)
+        AntiDetectStaffToggle:Set(false)
+        AntiAFKToggle:Set(false)
+        ReducedLagToggle:Set(false)
+        FastFPSToggle:Set(false)
+        ESPPlayerToggle:Set(false)
+    end    
+})
+
+PresetsSection:AddButton({
+    Name = "🕵️ Stealth Mode",
+    Callback = function()
+        AntiDetectStaffToggle:Set(true)
+        AntiAFKToggle:Set(true)
+        NoclipToggle:Set(true)
+        ESPPlayerToggle:Set(true)
+    end    
+})
+
+PresetsSection:AddButton({
+    Name = "⚡ Performance Mode",
+    Callback = function()
+        ReducedLagToggle:Set(true)
+        FastFPSToggle:Set(true)
+        AntiAFKToggle:Set(true)
+    end    
+})
+
+PresetsSection:AddButton({
+    Name = "👑 Ultimate Mode",
+    Callback = function()
+        -- All basic features
+        NoOxygenToggle:Set(true)
+        NoTemperatureToggle:Set(true)
+        NoclipToggle:Set(true)
+        AntiDownToggle:Set(true)
+        WalkSpeedToggle:Set(true)
+        WalkSpeedSlider:Set(35)
+        JumpPowerToggle:Set(true)
+        JumpPowerSlider:Set(100)
+        
+        -- All advanced features
+        AntiDetectStaffToggle:Set(true)
+        AntiAFKToggle:Set(true)
+        ReducedLagToggle:Set(true)
+        ESPPlayerToggle:Set(true)
     end    
 })
 

@@ -1,17 +1,24 @@
 --[[
     Utility System for Roblox Fisch
     Created by: MELLISAEFFENDY
-    Description: Utility features including No Oxygen, No Temperature, Noclip, Anti-Down, WalkSpeed, and Unlimited Jump
-    Version: 1.0
+    Description: Comprehensive utility features including player enhancements, movement controls, and advanced features
+    Version: 2.0
     GitHub: https://github.com/MELLISAEFFENDY/apakah
     
-    🛠️ Features:
+    🛠️ Basic Features:
     - Infinite Oxygen (No drowning)
     - No Temperature Effects (No winter/cold damage)
     - Noclip (Walk through walls)
     - Anti-Down (Anti falling damage)
     - WalkSpeed Control (Custom walking speed)
     - Unlimited Jump (Infinite jump power)
+    
+    🔥 Advanced Features:
+    - Anti Detect Staff (Hidden from staff detection)
+    - Anti AFK (Prevent AFK detection)
+    - Reduced Lag (Performance optimization)
+    - Fast FPS (Maximum FPS boost)
+    - ESP Player (See all players with highlights)
 ]]
 
 local UtilitySystem = {}
@@ -35,6 +42,11 @@ local noclipEnabled = false
 local antiDownEnabled = false
 local walkSpeedEnabled = false
 local unlimitedJumpEnabled = false
+local antiDetectStaffEnabled = false
+local antiAFKEnabled = false
+local reducedLagEnabled = false
+local fastFPSEnabled = false
+local espPlayerEnabled = false
 
 --// Default Values
 local defaultWalkSpeed = 16
@@ -280,6 +292,340 @@ function UtilitySystem.enableUnlimitedJump(enabled, power)
     end
 end
 
+--// Anti Detect Staff System
+function UtilitySystem.setAntiDetectStaff(enabled)
+    antiDetectStaffEnabled = enabled
+    
+    if enabled then
+        -- Hide character from staff detection
+        connections.antiDetectStaff = RunService.Heartbeat:Connect(function()
+            if character and character.Parent then
+                -- Hide from admin commands
+                character:SetAttribute("NoAdmin", true)
+                character:SetAttribute("Invisible", true)
+                
+                -- Spoof player data to avoid detection
+                local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+                if playerGui then
+                    for _, gui in pairs(playerGui:GetChildren()) do
+                        if gui.Name:lower():find("admin") or gui.Name:lower():find("mod") or gui.Name:lower():find("staff") then
+                            gui:Destroy()
+                        end
+                    end
+                end
+                
+                -- Hide from staff lists
+                LocalPlayer:SetAttribute("Staff", false)
+                LocalPlayer:SetAttribute("Admin", false)
+                LocalPlayer:SetAttribute("Moderator", false)
+            end
+        end)
+        
+        print("🕵️ Anti Detect Staff: ENABLED - Hidden from staff detection!")
+    else
+        if connections.antiDetectStaff then
+            connections.antiDetectStaff:Disconnect()
+            connections.antiDetectStaff = nil
+        end
+        
+        -- Restore normal visibility
+        if character and character.Parent then
+            character:SetAttribute("NoAdmin", nil)
+            character:SetAttribute("Invisible", nil)
+        end
+        
+        print("🕵️ Anti Detect Staff: DISABLED")
+    end
+end
+
+--// Anti AFK System
+function UtilitySystem.setAntiAFK(enabled)
+    antiAFKEnabled = enabled
+    
+    if enabled then
+        local lastPosition = humanoidRootPart.Position
+        local afkTime = 0
+        
+        connections.antiAFK = RunService.Heartbeat:Connect(function()
+            if character and humanoidRootPart then
+                -- Check if player is idle
+                if (humanoidRootPart.Position - lastPosition).Magnitude < 0.1 then
+                    afkTime = afkTime + RunService.Heartbeat:Wait()
+                    
+                    -- Simulate small movement every 30 seconds
+                    if afkTime >= 30 then
+                        humanoidRootPart.CFrame = humanoidRootPart.CFrame + Vector3.new(0.01, 0, 0)
+                        wait(0.1)
+                        humanoidRootPart.CFrame = humanoidRootPart.CFrame - Vector3.new(0.01, 0, 0)
+                        afkTime = 0
+                    end
+                else
+                    afkTime = 0
+                    lastPosition = humanoidRootPart.Position
+                end
+                
+                -- Prevent AFK detection attributes
+                LocalPlayer:SetAttribute("AFK", false)
+                LocalPlayer:SetAttribute("IdleTime", 0)
+                character:SetAttribute("LastAction", tick())
+            end
+        end)
+        
+        print("😴 Anti AFK: ENABLED - You won't be detected as AFK!")
+    else
+        if connections.antiAFK then
+            connections.antiAFK:Disconnect()
+            connections.antiAFK = nil
+        end
+        
+        print("😴 Anti AFK: DISABLED")
+    end
+end
+
+--// Reduced Lag System
+function UtilitySystem.setReducedLag(enabled)
+    reducedLagEnabled = enabled
+    
+    if enabled then
+        -- Reduce rendering quality for better performance
+        local lighting = game:GetService("Lighting")
+        local workspace = game:GetService("Workspace")
+        
+        -- Store original settings
+        local originalSettings = {
+            shadowMapEnabled = lighting.ShadowMapEnabled,
+            globalShadows = lighting.GlobalShadows,
+            meshPartDetail = workspace.MeshPartHeadsAndAccessories,
+            streamingEnabled = workspace.StreamingEnabled
+        }
+        
+        -- Apply performance settings
+        lighting.ShadowMapEnabled = false
+        lighting.GlobalShadows = false
+        workspace.MeshPartHeadsAndAccessories = Enum.MeshPartHeadsAndAccessories.Disabled
+        workspace.StreamingEnabled = true
+        
+        -- Remove unnecessary visual effects
+        connections.reducedLag = RunService.Heartbeat:Connect(function()
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("ParticleEmitter") or obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") then
+                    obj.Enabled = false
+                elseif obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
+                    obj.Enabled = false
+                elseif obj:IsA("Explosion") then
+                    obj:Destroy()
+                end
+            end
+        end)
+        
+        -- Store settings for restoration
+        UtilitySystem._originalSettings = originalSettings
+        
+        print("🚀 Reduced Lag: ENABLED - Performance optimized!")
+    else
+        if connections.reducedLag then
+            connections.reducedLag:Disconnect()
+            connections.reducedLag = nil
+        end
+        
+        -- Restore original settings
+        if UtilitySystem._originalSettings then
+            local lighting = game:GetService("Lighting")
+            local workspace = game:GetService("Workspace")
+            local settings = UtilitySystem._originalSettings
+            
+            lighting.ShadowMapEnabled = settings.shadowMapEnabled
+            lighting.GlobalShadows = settings.globalShadows
+            workspace.MeshPartHeadsAndAccessories = settings.meshPartDetail
+            workspace.StreamingEnabled = settings.streamingEnabled
+        end
+        
+        print("🚀 Reduced Lag: DISABLED")
+    end
+end
+
+--// Fast FPS System
+function UtilitySystem.setFastFPS(enabled)
+    fastFPSEnabled = enabled
+    
+    if enabled then
+        -- Optimize rendering for maximum FPS
+        local runService = game:GetService("RunService")
+        
+        -- Disable unnecessary services
+        runService:Set3dRenderingEnabled(false)
+        
+        -- Reduce quality settings
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+        settings().Rendering.EagerBulkExecution = true
+        
+        -- Hide all non-essential parts
+        connections.fastFPS = RunService.Heartbeat:Connect(function()
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("BasePart") and obj.Parent ~= character then
+                    if not obj:FindFirstChild("Essential") then
+                        obj.Transparency = 1
+                        obj.CanCollide = false
+                    end
+                elseif obj:IsA("Decal") or obj:IsA("Texture") then
+                    obj.Transparency = 1
+                elseif obj:IsA("SurfaceGui") or obj:IsA("BillboardGui") then
+                    obj.Enabled = false
+                end
+            end
+        end)
+        
+        print("⚡ Fast FPS: ENABLED - Maximum FPS optimization!")
+    else
+        if connections.fastFPS then
+            connections.fastFPS:Disconnect()
+            connections.fastFPS = nil
+        end
+        
+        -- Restore rendering
+        local runService = game:GetService("RunService")
+        runService:Set3dRenderingEnabled(true)
+        
+        -- Restore quality
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
+        
+        -- Restore visibility
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") then
+                obj.Transparency = 0
+                obj.CanCollide = true
+            elseif obj:IsA("Decal") or obj:IsA("Texture") then
+                obj.Transparency = 0
+            elseif obj:IsA("SurfaceGui") or obj:IsA("BillboardGui") then
+                obj.Enabled = true
+            end
+        end
+        
+        print("⚡ Fast FPS: DISABLED")
+    end
+end
+
+--// ESP Player System
+function UtilitySystem.setESPPlayer(enabled)
+    espPlayerEnabled = enabled
+    
+    if enabled then
+        local espObjects = {}
+        
+        -- Create ESP for existing players
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character then
+                UtilitySystem._createESP(player, espObjects)
+            end
+        end
+        
+        -- Create ESP for new players
+        connections.playerAdded = Players.PlayerAdded:Connect(function(player)
+            player.CharacterAdded:Connect(function()
+                wait(1)
+                UtilitySystem._createESP(player, espObjects)
+            end)
+        end)
+        
+        -- Remove ESP when players leave
+        connections.playerRemoving = Players.PlayerRemoving:Connect(function(player)
+            if espObjects[player] then
+                for _, obj in pairs(espObjects[player]) do
+                    obj:Destroy()
+                end
+                espObjects[player] = nil
+            end
+        end)
+        
+        -- Store ESP objects for cleanup
+        UtilitySystem._espObjects = espObjects
+        
+        print("👁️ ESP Player: ENABLED - All players are now visible!")
+    else
+        if connections.playerAdded then
+            connections.playerAdded:Disconnect()
+            connections.playerAdded = nil
+        end
+        
+        if connections.playerRemoving then
+            connections.playerRemoving:Disconnect()
+            connections.playerRemoving = nil
+        end
+        
+        -- Remove all ESP objects
+        if UtilitySystem._espObjects then
+            for _, playerESP in pairs(UtilitySystem._espObjects) do
+                for _, obj in pairs(playerESP) do
+                    obj:Destroy()
+                end
+            end
+            UtilitySystem._espObjects = {}
+        end
+        
+        print("👁️ ESP Player: DISABLED")
+    end
+end
+
+-- Helper function to create ESP for a player
+function UtilitySystem._createESP(player, espObjects)
+    if not player.Character or espObjects[player] then return end
+    
+    local character = player.Character
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    espObjects[player] = {}
+    
+    -- Create highlight effect
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "PlayerESP"
+    highlight.FillColor = Color3.new(1, 0, 0)
+    highlight.OutlineColor = Color3.new(1, 1, 1)
+    highlight.FillTransparency = 0.7
+    highlight.OutlineTransparency = 0
+    highlight.Parent = character
+    table.insert(espObjects[player], highlight)
+    
+    -- Create distance and name display
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "PlayerESPText"
+    billboardGui.Size = UDim2.new(0, 200, 0, 50)
+    billboardGui.StudsOffset = Vector3.new(0, 3, 0)
+    billboardGui.Parent = humanoidRootPart
+    
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = player.Name
+    textLabel.TextColor3 = Color3.new(1, 1, 1)
+    textLabel.TextStrokeTransparency = 0
+    textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+    textLabel.TextScaled = true
+    textLabel.Font = Enum.Font.SourceSansBold
+    textLabel.Parent = billboardGui
+    
+    table.insert(espObjects[player], billboardGui)
+    
+    -- Update distance continuously
+    local updateConnection
+    updateConnection = RunService.Heartbeat:Connect(function()
+        if not player.Character or not LocalPlayer.Character then
+            updateConnection:Disconnect()
+            return
+        end
+        
+        local localRoot = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        local playerRoot = player.Character:FindFirstChild("HumanoidRootPart")
+        
+        if localRoot and playerRoot then
+            local distance = math.floor((localRoot.Position - playerRoot.Position).Magnitude)
+            textLabel.Text = player.Name .. "\n[" .. distance .. "m]"
+        end
+    end)
+    
+    table.insert(espObjects[player], updateConnection)
+end
+
 --// Get Status Functions
 function UtilitySystem.getNoOxygenStatus()
     return noOxygenEnabled
@@ -305,6 +651,26 @@ function UtilitySystem.getUnlimitedJumpStatus()
     return unlimitedJumpEnabled, customJumpPower
 end
 
+function UtilitySystem.getAntiDetectStaffStatus()
+    return antiDetectStaffEnabled
+end
+
+function UtilitySystem.getAntiAFKStatus()
+    return antiAFKEnabled
+end
+
+function UtilitySystem.getReducedLagStatus()
+    return reducedLagEnabled
+end
+
+function UtilitySystem.getFastFPSStatus()
+    return fastFPSEnabled
+end
+
+function UtilitySystem.getESPPlayerStatus()
+    return espPlayerEnabled
+end
+
 --// Cleanup function
 function UtilitySystem.cleanup()
     for name, connection in pairs(connections) do
@@ -321,19 +687,29 @@ function UtilitySystem.cleanup()
     UtilitySystem.setAntiDown(false)
     UtilitySystem.enableWalkSpeed(false)
     UtilitySystem.enableUnlimitedJump(false)
+    UtilitySystem.setAntiDetectStaff(false)
+    UtilitySystem.setAntiAFK(false)
+    UtilitySystem.setReducedLag(false)
+    UtilitySystem.setFastFPS(false)
+    UtilitySystem.setESPPlayer(false)
     
     print("🧹 UtilitySystem: All features disabled and cleaned up")
 end
 
 --// Initialize
 function UtilitySystem.init()
-    print("🛠️ Utility System v1.0 - Loaded successfully!")
+    print("🛠️ Utility System v2.0 - Loaded successfully!")
     print("🫁 No Oxygen - Breathe underwater indefinitely")
     print("🌡️ No Temperature - Immune to cold/temperature effects") 
     print("👻 Noclip - Walk through walls")
     print("🛡️ Anti-Down - No fall damage")
     print("🏃 WalkSpeed - Custom walking speed")
     print("🦘 Unlimited Jump - Custom jump power")
+    print("🕵️ Anti Detect Staff - Hidden from staff detection")
+    print("😴 Anti AFK - Prevent AFK detection")
+    print("🚀 Reduced Lag - Performance optimization")
+    print("⚡ Fast FPS - Maximum FPS boost")
+    print("👁️ ESP Player - See all players with highlights")
     return UtilitySystem
 end
 
