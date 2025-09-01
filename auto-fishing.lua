@@ -1,11 +1,31 @@
 --[[
     Auto Fishing Script for Roblox Fisch
     Created by: MELLISAEFFENDY
-    Description: Advanced auto fishing script with Instant Reel Module
-    Version: 1.2
+    Description: Advanced auto fishing script with Instant Reel Module + Auto Drop Bobber + Auto Shake V2
+    Version: 1.4
     GitHub: https://github.com/MELLISAEFFENDY/apakah
     
     ⚡ NEW: Instant Reel Module - Lightning fast reel system with anti-detection
+    🎣 NEW: Auto Drop Bobber - Automatically drops and recasts bobber when no fish bites
+    👻 NEW: Auto Shake V2 - Invis-- Auto Drop Bobber notification
+spawn(function()
+    wait(4)
+    OrionLib:MakeNotification({
+        Name = "🎣 Auto Drop Bobber",
+        Content = "New feature! Automatically drops and recasts bobber when no fish bites. Configure time in settings.",
+        Time = 4
+    })
+end)
+
+-- Auto Shake V2 notification
+spawn(function()
+    wait(6)
+    OrionLib:MakeNotification({
+        Name = "👻 Auto Shake V2",
+        Content = "Invisible ultra-fast shake system! Much faster than regular Auto Shake. Try it now!",
+        Time = 4
+    })
+end)ultra-fast shake system
     🎨 UI: Uses OrionLib (ui.lua) for professional interface
 ]]
 
@@ -21,6 +41,8 @@ local lp = Players.LocalPlayer
 local flags = {}
 local characterPosition = nil
 local connections = {}
+local lastCastTime = 0
+local bobberDropTimer = 0
 
 --// Load UI Library
 local OrionLib
@@ -153,6 +175,16 @@ local AutoShakeToggle = FishingSection:AddToggle({
     end    
 })
 
+local AutoShakeV2Toggle = FishingSection:AddToggle({
+    Name = "Auto Shake V2 (Invisible)",
+    Default = false,
+    Flag = "autoshakev2",
+    Save = true,
+    Callback = function(Value)
+        flags['autoshakev2'] = Value
+    end    
+})
+
 local AutoReelToggle = FishingSection:AddToggle({
     Name = "Auto Reel",
     Default = false,
@@ -160,6 +192,31 @@ local AutoReelToggle = FishingSection:AddToggle({
     Save = true,
     Callback = function(Value)
         flags['autoreel'] = Value
+    end    
+})
+
+local AutoDropBobberToggle = FishingSection:AddToggle({
+    Name = "Auto Drop Bobber",
+    Default = false,
+    Flag = "autodropbobber", 
+    Save = true,
+    Callback = function(Value)
+        flags['autodropbobber'] = Value
+    end    
+})
+
+local DropBobberTimeSlider = FishingSection:AddSlider({
+    Name = "Drop Bobber Time (seconds)",
+    Min = 5,
+    Max = 30,
+    Default = 15,
+    Color = Color3.fromRGB(255, 255, 255),
+    Increment = 1,
+    ValueName = "seconds",
+    Flag = "dropbobbertime",
+    Save = true,
+    Callback = function(Value)
+        flags['dropbobbertime'] = Value
     end    
 })
 
@@ -284,9 +341,11 @@ local InfoSection = SettingsTab:AddSection({
     Name = "Script Information"
 })
 
-InfoSection:AddLabel("Script Version: 1.0")
+InfoSection:AddLabel("Script Version: 1.4")
 InfoSection:AddLabel("Created for: Roblox Fisch")
 InfoSection:AddLabel("Status: ✅ Active")
+InfoSection:AddLabel("New: Auto Shake V2 (Invisible) feature!")
+InfoSection:AddLabel("New: Auto Drop Bobber feature added!")
 
 local ControlSection = SettingsTab:AddSection({
     Name = "Script Controls"
@@ -326,12 +385,55 @@ connections.mainLoop = RunService.Heartbeat:Connect(function()
             end
         end
         
+        -- Auto Shake V2 (Invisible & Fast)
+        if flags['autoshakev2'] then
+            local rod = findRod()
+            if rod and rod.events and rod.events:FindFirstChild('shake') then
+                -- Check if shake event should be triggered
+                local shakeUI = lp.PlayerGui:FindFirstChild('shakeui')
+                if shakeUI then
+                    -- Instantly fire shake event without UI interaction
+                    rod.events.shake:FireServer(100, true)
+                    -- Hide the shake UI to make it invisible
+                    shakeUI.Enabled = false
+                    wait(0.1)
+                    shakeUI.Enabled = true
+                end
+            end
+        end
+        
         -- Auto Cast
         if flags['autocast'] then
             local rod = findRod()
             if rod and rod.values and rod.values.lure.Value <= 0.001 then
                 wait(0.5)
                 rod.events.cast:FireServer(100, 1)
+                lastCastTime = tick()
+                bobberDropTimer = 0
+            end
+        end
+        
+        -- Auto Drop Bobber
+        if flags['autodropbobber'] then
+            local rod = findRod()
+            if rod and rod.values then
+                local lureValue = rod.values.lure.Value
+                -- If bobber is in water but no fish caught
+                if lureValue > 0.001 and lureValue < 100 then
+                    bobberDropTimer = bobberDropTimer + RunService.Heartbeat:Wait()
+                    local dropTime = flags['dropbobbertime'] or 15
+                    
+                    if bobberDropTimer >= dropTime then
+                        -- Drop the bobber and recast
+                        rod.events.cast:FireServer(0, 1) -- Drop bobber
+                        wait(0.5)
+                        rod.events.cast:FireServer(100, 1) -- Recast
+                        lastCastTime = tick()
+                        bobberDropTimer = 0
+                    end
+                else
+                    bobberDropTimer = 0
+                end
             end
         end
         
@@ -367,8 +469,8 @@ OrionLib:Init()
 
 --// Notification
 OrionLib:MakeNotification({
-    Name = "🎣 Auto Fishing Pro v1.2",
-    Content = "Script loaded with Instant Reel Module and OrionLib UI! Ready to fish at lightning speed.",
+    Name = "🎣 Auto Fishing Pro v1.4",
+    Content = "Script loaded with Auto Shake V2 (Invisible), Instant Reel Module, Auto Drop Bobber! Ultra-fast fishing experience.",
     Image = "rbxassetid://4483345875",
     Time = 5
 })
@@ -383,8 +485,20 @@ spawn(function()
     })
 end)
 
-print("🎣 Auto Fishing Pro v1.2 - Script loaded successfully!")
+-- Auto Drop Bobber notification
+spawn(function()
+    wait(4)
+    OrionLib:MakeNotification({
+        Name = "🎣 Auto Drop Bobber",
+        Content = "New feature! Automatically drops and recasts bobber when no fish bites. Configure time in settings.",
+        Time = 5
+    })
+end)
+
+print("🎣 Auto Fishing Pro v1.4 - Script loaded successfully!")
 print("⚡ Instant Reel Module - Loaded and ready!")
+print("👻 Auto Shake V2 - Invisible ultra-fast shake system!")
+print("🎣 Auto Drop Bobber - Automatically drops and recasts bobber!")
 print("🎨 UI Library - OrionLib (ui.lua)")
 print("📁 GitHub: https://github.com/MELLISAEFFENDY/apakah")
-print("⚙️ Version: 1.2")
+print("⚙️ Version: 1.4")
