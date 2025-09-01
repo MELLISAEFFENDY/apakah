@@ -788,7 +788,23 @@ local DropBobberTimeSlider = FishingSection:AddSlider({
     Callback = function(Value)
         dropBobberTime = Value
         flags['dropbobbertime'] = Value
+        print("Drop Bobber Time changed to:", Value)
     end    
+})
+
+-- Alternative TextBox inputs for manual value entry
+FishingSection:AddTextbox({
+    Name = "Manual Drop Bobber Time",
+    Default = "15",
+    TextDisappear = false,
+    Callback = function(Value)
+        local num = tonumber(Value)
+        if num and num >= 5 and num <= 30 then
+            dropBobberTime = num
+            DropBobberTimeSlider:Set(num)
+            print("Manual Drop Bobber Time set to:", num)
+        end
+    end
 })
 
 local AutoCastDelaySlider = FishingSection:AddSlider({
@@ -804,7 +820,22 @@ local AutoCastDelaySlider = FishingSection:AddSlider({
     Callback = function(Value)
         autoCastDelay = Value
         flags['autocastdelay'] = Value
+        print("Auto Cast Delay changed to:", Value)
     end    
+})
+
+FishingSection:AddTextbox({
+    Name = "Manual Auto Cast Delay (0.1-2.0)",
+    Default = "0.5",
+    TextDisappear = false,
+    Callback = function(Value)
+        local num = tonumber(Value)
+        if num and num >= 0.1 and num <= 2.0 then
+            autoCastDelay = num
+            AutoCastDelaySlider:Set(num)
+            print("Manual Auto Cast Delay set to:", num)
+        end
+    end
 })
 
 local AutoReelDelaySlider = FishingSection:AddSlider({
@@ -820,7 +851,22 @@ local AutoReelDelaySlider = FishingSection:AddSlider({
     Callback = function(Value)
         autoReelDelay = Value
         flags['autoreeldelay'] = Value
+        print("Auto Reel Delay changed to:", Value)
     end    
+})
+
+FishingSection:AddTextbox({
+    Name = "Manual Auto Reel Delay (0.1-2.0)",
+    Default = "0.5",
+    TextDisappear = false,
+    Callback = function(Value)
+        local num = tonumber(Value)
+        if num and num >= 0.1 and num <= 2.0 then
+            autoReelDelay = num
+            AutoReelDelaySlider:Set(num)
+            print("Manual Auto Reel Delay set to:", num)
+        end
+    end
 })
 
 --// Enhancement Section
