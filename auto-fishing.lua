@@ -27,8 +27,8 @@ local OrionLib
 if readfile and isfile and isfile('ui.lua') then
     OrionLib = loadstring(readfile('ui.lua'))()
 else
-    -- Fallback: Load OrionLib from official source
-    OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
+    -- Fallback: Load OrionLib from our repository
+    OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/ui.lua'))()
 end
 
 --// Load Instant Reel Module
