@@ -28,14 +28,28 @@ local OrionLib = {
 }
 
 --Feather Icons https://github.com/evoincorp/lucideblox/tree/master/src/modules/util - Created by 7kayoh
-local Icons = {}
+local Icons = {
+	-- Fallback icons to prevent HTTP 404 errors
+	["home"] = "rbxassetid://3944694330",
+	["settings"] = "rbxassetid://3944694151",
+	["user"] = "rbxassetid://3944693881",
+	["x"] = "rbxassetid://7072725342",
+	["minus"] = "rbxassetid://7072719338",
+	["plus"] = "rbxassetid://7072720870",
+	["check"] = "rbxassetid://3944703587"
+}
 
+-- Try to load icons from GitHub, but don't fail if it's not available
 local Success, Response = pcall(function()
-	Icons = HttpService:JSONDecode(game:HttpGetAsync("https://raw.githubusercontent.com/evoincorp/lucideblox/master/src/modules/util/icons.json")).icons
+	local ExternalIcons = HttpService:JSONDecode(game:HttpGetAsync("https://raw.githubusercontent.com/evoincorp/lucideblox/master/src/modules/util/icons.json")).icons
+	-- Merge external icons with fallback icons
+	for name, icon in pairs(ExternalIcons) do
+		Icons[name] = icon
+	end
 end)
 
 if not Success then
-	warn("\nOrion Library - Failed to load Feather Icons. Error code: " .. Response .. "\n")
+	warn("\nOrion Library - Using fallback icons due to network error: " .. tostring(Response) .. "\n")
 end	
 
 local function GetIcon(IconName)
