@@ -1069,15 +1069,17 @@ local PlacesSection = TeleportTab:AddSection({
 
 local PlaceDropdown = PlacesSection:AddDropdown({
     Name = "Select Place",
-    Default = "Moosewood",
+    Default = "",
     Options = TeleportSystem.getPlaceNames(),
     Callback = function(Value)
-        local success, msg = TeleportSystem.teleportToPlace(Value)
-        OrionLib:MakeNotification({
-            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
-            Content = msg,
-            Time = 3
-        })
+        if Value and Value ~= "" then
+            local success, msg = TeleportSystem.teleportToPlace(Value)
+            OrionLib:MakeNotification({
+                Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+                Content = msg,
+                Time = 3
+            })
+        end
     end    
 })
 
@@ -1088,15 +1090,17 @@ local FishAreasSection = TeleportTab:AddSection({
 
 local FishAreaDropdown = FishAreasSection:AddDropdown({
     Name = "Select Fish Area",
-    Default = "Ocean",
+    Default = "",
     Options = TeleportSystem.getFishAreaNames(),
     Callback = function(Value)
-        local success, msg = TeleportSystem.teleportToFishArea(Value)
-        OrionLib:MakeNotification({
-            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
-            Content = msg,
-            Time = 3
-        })
+        if Value and Value ~= "" then
+            local success, msg = TeleportSystem.teleportToFishArea(Value)
+            OrionLib:MakeNotification({
+                Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+                Content = msg,
+                Time = 3
+            })
+        end
     end    
 })
 
@@ -1107,15 +1111,17 @@ local NPCsSection = TeleportTab:AddSection({
 
 local NPCDropdown = NPCsSection:AddDropdown({
     Name = "Select NPC",
-    Default = "Appraiser",
+    Default = "",
     Options = TeleportSystem.getNPCNames(),
     Callback = function(Value)
-        local success, msg = TeleportSystem.teleportToNPC(Value)
-        OrionLib:MakeNotification({
-            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
-            Content = msg,
-            Time = 3
-        })
+        if Value and Value ~= "" then
+            local success, msg = TeleportSystem.teleportToNPC(Value)
+            OrionLib:MakeNotification({
+                Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+                Content = msg,
+                Time = 3
+            })
+        end
     end    
 })
 
@@ -1126,15 +1132,17 @@ local ItemsSection = TeleportTab:AddSection({
 
 local ItemDropdown = ItemsSection:AddDropdown({
     Name = "Select Item/Rod",
-    Default = "Training Rod",
+    Default = "",
     Options = TeleportSystem.getItemNames(),
     Callback = function(Value)
-        local success, msg = TeleportSystem.teleportToItem(Value)
-        OrionLib:MakeNotification({
-            Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
-            Content = msg,
-            Time = 3
-        })
+        if Value and Value ~= "" then
+            local success, msg = TeleportSystem.teleportToItem(Value)
+            OrionLib:MakeNotification({
+                Name = success and "✅ Teleport Success" or "❌ Teleport Failed",
+                Content = msg,
+                Time = 3
+            })
+        end
     end    
 })
 
