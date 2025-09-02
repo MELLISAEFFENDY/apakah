@@ -2,11 +2,11 @@
     Enhanced Teleport System V2.0 for Roblox Fisch
     Created by: MELLISAEFFENDY
     Description: GPS-powered teleport system with category-based organization
-    Version: 2.0
+    Version: 2.1
     GitHub: https://github.com/MELLISAEFFENDY/apakah
     
     🌍 Features:
-    - 263 GPS Locations from datagps.json
+    - 276 GPS Locations from datagps.json + Item Totems
     - Category-based Organization:
       * First Sea Locations
       * Second Sea Locations  
@@ -15,6 +15,7 @@
       * Special Areas
       * NPC Locations
       * Treasure Areas
+      * Item Totem Locations (NEW!)
     - Smart Search & Filter
     - Distance Calculator
     - Batch Teleport
@@ -201,6 +202,22 @@ TeleportSystemV2.gpsData = {
         {name = "Sunken Chest 24", x = -1618.0, y = 130.0, z = -1560.0, url = "https://fischipedia.org/wiki/Sunken_Chest"},
         {name = "Sunken Chest 25", x = -190.0, y = 130.0, z = 2450.0, url = "https://fischipedia.org/wiki/Sunken_Chest"},
         {name = "Treasure Hunting Site", x = -2825.0, y = 215.0, z = 1515.0, url = "https://fischipedia.org/wiki/Treasure_Hunting"}
+    },
+    
+    ["Item Totem Locations"] = {
+        {name = "Sundial Totem", x = -1215.0, y = 195.0, z = -1040.0, url = "https://fischipedia.org/wiki/Sundial_Totem"},
+        {name = "Tempest Totem", x = 20.0, y = 140.0, z = 1860.0, url = "https://fischipedia.org/wiki/Tempest_Totem"},
+        {name = "Windset Totem", x = 2845.0, y = 180.0, z = 2700.0, url = "https://fischipedia.org/wiki/Windset_Totem"},
+        {name = "Smokescreen Totem", x = 2790.0, y = 140.0, z = -625.0, url = "https://fischipedia.org/wiki/Smokescreen_Totem"},
+        {name = "Meteor Totem", x = -1945.0, y = 275.0, z = 230.0, url = "https://fischipedia.org/wiki/Meteor_Totem"},
+        {name = "Avalanche Totem", x = 19711.0, y = 468.0, z = 6059.0, url = "https://fischipedia.org/wiki/Avalanche_Totem"},
+        {name = "Eclipse Totem", x = 5940.0, y = 265.0, z = 900.0, url = "https://fischipedia.org/wiki/Eclipse_Totem"},
+        {name = "Blizzard Totem", x = 20148.0, y = 743.0, z = 5804.0, url = "https://fischipedia.org/wiki/Blizzard_Totem"},
+        {name = "Aurora Totem", x = -1810.0, y = -135.0, z = -3280.0, url = "https://fischipedia.org/wiki/Aurora_Totem"},
+        {name = "Cursed Storm Totem", x = 760.0, y = 2130.0, z = 16965.0, url = "https://fischipedia.org/wiki/Cursed_Storm_Totem"},
+        {name = "Zeus Storm Totem", x = -4325.0, y = -625.0, z = 2685.0, url = "https://fischipedia.org/wiki/Zeus_Storm_Totem"},
+        {name = "Poseidon Wrath Totem", x = -3955.0, y = -555.0, z = 855.0, url = "https://fischipedia.org/wiki/Poseidon_Wrath_Totem"},
+        {name = "Blue Moon Totem", x = 1300.0, y = 155.0, z = -550.0, url = "https://fischipedia.org/wiki/Blue_Moon_Totem"}
     }
 }
 
@@ -411,7 +428,7 @@ end
 --// Initialize system
 function TeleportSystemV2.init()
     print("🌍 Enhanced Teleport System V2.0 - Loaded successfully!")
-    print("📍 Total Locations: 263")
+    print("📍 Total Locations: 276 (263 GPS + 13 Totems)")
     print("📂 Categories: " .. #TeleportSystemV2.getCategoryNames())
     
     -- Print category summary

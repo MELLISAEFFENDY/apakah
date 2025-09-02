@@ -1307,7 +1307,8 @@ local categoryButtons = {
     {name = "⭐ Events", category = "Limited-Time Events"},
     {name = "🎯 Special", category = "Special Areas"},
     {name = "👥 NPCs", category = "NPC Locations"},
-    {name = "💎 Treasure", category = "Treasure Areas"}
+    {name = "💎 Treasure", category = "Treasure Areas"},
+    {name = "🏛️ Totems", category = "Item Totem Locations"}
 }
 
 for _, button in pairs(categoryButtons) do
@@ -1351,6 +1352,126 @@ local ItemDropdown = ItemsSection:AddDropdown({
         end
     end    
 })
+
+--// Item Totem Section
+local TotemSection = TeleportTab:AddSection({
+    Name = "🏛️ Item Totem Locations"
+})
+
+-- Totem Data from totem.txt
+local totemData = {
+    {name = "Sundial Totem", x = -1215, y = 195, z = -1040},
+    {name = "Tempest Totem", x = 20, y = 140, z = 1860},
+    {name = "Windset Totem", x = 2845, y = 180, z = 2700},
+    {name = "Smokescreen Totem", x = 2790, y = 140, z = -625},
+    {name = "Meteor Totem", x = -1945, y = 275, z = 230},
+    {name = "Avalanche Totem", x = 19711, y = 468, z = 6059},
+    {name = "Eclipse Totem", x = 5940, y = 265, z = 900},
+    {name = "Blizzard Totem", x = 20148, y = 743, z = 5804},
+    {name = "Aurora Totem", x = -1810, y = -135, z = -3280},
+    {name = "Cursed Storm Totem", x = 760, y = 2130, z = 16965},
+    {name = "Zeus Storm Totem", x = -4325, y = -625, z = 2685},
+    {name = "Poseidon Wrath Totem", x = -3955, y = -555, z = 855},
+    {name = "Blue Moon Totem", x = 1300, y = 155, z = -550}
+}
+
+-- Function to teleport to totem
+local function teleportToTotem(totemName)
+    for _, totem in pairs(totemData) do
+        if totem.name == totemName then
+            local success, err = pcall(function()
+                local char = getChar()
+                local hrp = getHRP()
+                if char and hrp then
+                    hrp.CFrame = CFrame.new(totem.x, totem.y, totem.z)
+                    return true
+                end
+                return false
+            end)
+            
+            if success then
+                return true, "Teleported to " .. totemName .. " successfully!"
+            else
+                return false, "Failed to teleport to " .. totemName .. ": " .. (err or "Unknown error")
+            end
+        end
+    end
+    return false, "Totem not found: " .. totemName
+end
+
+-- Create totem names list for dropdown
+local totemNames = {}
+for _, totem in pairs(totemData) do
+    table.insert(totemNames, totem.name)
+end
+
+local TotemDropdown = TotemSection:AddDropdown({
+    Name = "Select Totem",
+    Default = "",
+    Options = totemNames,
+    Callback = function(Value)
+        if Value and Value ~= "" then
+            local success, msg = teleportToTotem(Value)
+            OrionLib:MakeNotification({
+                Name = success and "🏛️ Totem Teleport Success" or "❌ Totem Teleport Failed",
+                Content = msg,
+                Time = 4
+            })
+        end
+    end    
+})
+
+-- Quick access buttons for popular totems
+TotemSection:AddButton({
+    Name = "🌙 Eclipse Totem",
+    Callback = function()
+        local success, msg = teleportToTotem("Eclipse Totem")
+        OrionLib:MakeNotification({
+            Name = success and "🌙 Eclipse Totem" or "❌ Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+TotemSection:AddButton({
+    Name = "⚡ Zeus Storm Totem",
+    Callback = function()
+        local success, msg = teleportToTotem("Zeus Storm Totem")
+        OrionLib:MakeNotification({
+            Name = success and "⚡ Zeus Storm Totem" or "❌ Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+TotemSection:AddButton({
+    Name = "🌊 Poseidon Wrath Totem",
+    Callback = function()
+        local success, msg = teleportToTotem("Poseidon Wrath Totem")
+        OrionLib:MakeNotification({
+            Name = success and "🌊 Poseidon Wrath Totem" or "❌ Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+TotemSection:AddButton({
+    Name = "❄️ Blizzard Totem",
+    Callback = function()
+        local success, msg = teleportToTotem("Blizzard Totem")
+        OrionLib:MakeNotification({
+            Name = success and "❄️ Blizzard Totem" or "❌ Failed",
+            Content = msg,
+            Time = 3
+        })
+    end    
+})
+
+TotemSection:AddLabel("💡 Total Totems Available: " .. #totemData)
+TotemSection:AddLabel("🏛️ Use dropdown for full list or buttons for quick access")
 
 --// Players Section
 local PlayersSection = TeleportTab:AddSection({
