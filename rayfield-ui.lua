@@ -321,7 +321,364 @@ function Rayfield:CreateWindow(Config)
             }
         end
         
-        function Tab:CreateDropdown(Config)
+        -- Compatibility methods for OrionLib API
+        function Tab:AddButton(Config)
+            return self:CreateButton(Config)
+        end
+        
+        function Tab:AddToggle(Config)
+            return self:CreateToggle(Config)
+        end
+        
+        function Tab:AddSlider(Config)
+            local SliderConfig = Config or {}
+            
+            local SliderFrame = Instance.new("Frame")
+            SliderFrame.Name = "SliderFrame"
+            SliderFrame.Parent = TabContent
+            SliderFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+            SliderFrame.BorderSizePixel = 0
+            SliderFrame.Size = UDim2.new(1, 0, 0, 60)
+            
+            local SliderCorner = Instance.new("UICorner")
+            SliderCorner.CornerRadius = UDim.new(0, 6)
+            SliderCorner.Parent = SliderFrame
+            
+            local SliderLabel = Instance.new("TextLabel")
+            SliderLabel.Name = "SliderLabel"
+            SliderLabel.Parent = SliderFrame
+            SliderLabel.BackgroundTransparency = 1
+            SliderLabel.Size = UDim2.new(1, -80, 0, 25)
+            SliderLabel.Position = UDim2.new(0, 15, 0, 5)
+            SliderLabel.Text = SliderConfig.Name or "Slider"
+            SliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            SliderLabel.TextScaled = true
+            SliderLabel.Font = Enum.Font.Gotham
+            SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+            
+            local ValueLabel = Instance.new("TextLabel")
+            ValueLabel.Name = "ValueLabel"
+            ValueLabel.Parent = SliderFrame
+            ValueLabel.BackgroundTransparency = 1
+            ValueLabel.Size = UDim2.new(0, 60, 0, 25)
+            ValueLabel.Position = UDim2.new(1, -75, 0, 5)
+            ValueLabel.Text = tostring(SliderConfig.Default or SliderConfig.Min or 0)
+            ValueLabel.TextColor3 = Color3.fromRGB(0, 162, 255)
+            ValueLabel.TextScaled = true
+            ValueLabel.Font = Enum.Font.GothamBold
+            
+            local SliderBar = Instance.new("Frame")
+            SliderBar.Name = "SliderBar"
+            SliderBar.Parent = SliderFrame
+            SliderBar.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+            SliderBar.BorderSizePixel = 0
+            SliderBar.Size = UDim2.new(1, -30, 0, 6)
+            SliderBar.Position = UDim2.new(0, 15, 1, -20)
+            
+            local BarCorner = Instance.new("UICorner")
+            BarCorner.CornerRadius = UDim.new(0, 3)
+            BarCorner.Parent = SliderBar
+            
+            local SliderFill = Instance.new("Frame")
+            SliderFill.Name = "SliderFill"
+            SliderFill.Parent = SliderBar
+            SliderFill.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
+            SliderFill.BorderSizePixel = 0
+            SliderFill.Size = UDim2.new(0, 0, 1, 0)
+            
+            local FillCorner = Instance.new("UICorner")
+            FillCorner.CornerRadius = UDim.new(0, 3)
+            FillCorner.Parent = SliderFill
+            
+            local currentValue = SliderConfig.Default or SliderConfig.Min or 0
+            local minValue = SliderConfig.Min or 0
+            local maxValue = SliderConfig.Max or 100
+            
+            local function updateSlider()
+                local percentage = (currentValue - minValue) / (maxValue - minValue)
+                SliderFill.Size = UDim2.new(percentage, 0, 1, 0)
+                ValueLabel.Text = tostring(math.floor(currentValue))
+                
+                if SliderConfig.Callback then
+                    SliderConfig.Callback(currentValue)
+                end
+            end
+            
+            local dragging = false
+            
+            SliderBar.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = true
+                end
+            end)
+            
+            UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = false
+                end
+            end)
+            
+            UserInputService.InputChanged:Connect(function(input)
+                if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                    local mouse = UserInputService:GetMouseLocation()
+                    local sliderPos = SliderBar.AbsolutePosition
+                    local sliderSize = SliderBar.AbsoluteSize
+                    
+                    local percentage = math.clamp((mouse.X - sliderPos.X) / sliderSize.X, 0, 1)
+                    currentValue = minValue + (percentage * (maxValue - minValue))
+                    updateSlider()
+                end
+            end)
+            
+            updateSlider()
+            
+            -- Update canvas size
+            TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y)
+            
+            return {
+                Set = function(value)
+                    currentValue = math.clamp(value, minValue, maxValue)
+                    updateSlider()
+                end
+            }
+        end
+        
+        function Tab:AddDropdown(Config)
+            return self:CreateDropdown(Config)
+        end
+        
+        function Tab:AddSection(Config)
+            local SectionConfig = Config or {}
+            
+            local SectionFrame = Instance.new("Frame")
+            SectionFrame.Name = "SectionFrame"
+            SectionFrame.Parent = TabContent
+            SectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+            SectionFrame.BorderSizePixel = 0
+            SectionFrame.Size = UDim2.new(1, 0, 0, 30)
+            
+            local SectionCorner = Instance.new("UICorner")
+            SectionCorner.CornerRadius = UDim.new(0, 6)
+            SectionCorner.Parent = SectionFrame
+            
+            local SectionLabel = Instance.new("TextLabel")
+            SectionLabel.Name = "SectionLabel"
+            SectionLabel.Parent = SectionFrame
+            SectionLabel.BackgroundTransparency = 1
+            SectionLabel.Size = UDim2.new(1, -20, 1, 0)
+            SectionLabel.Position = UDim2.new(0, 10, 0, 0)
+            SectionLabel.Text = SectionConfig.Name or "Section"
+            SectionLabel.TextColor3 = Color3.fromRGB(0, 162, 255)
+            SectionLabel.TextScaled = true
+            SectionLabel.Font = Enum.Font.GothamBold
+            SectionLabel.TextXAlignment = Enum.TextXAlignment.Left
+            
+            -- Update canvas size
+            TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y)
+            
+            -- Return the tab itself so methods can be chained
+            return Tab
+        end
+        
+        function Tab:CreateToggle(Config)
+            local ToggleConfig = Config or {}
+            
+            local ToggleFrame = Instance.new("Frame")
+            ToggleFrame.Name = "ToggleFrame"
+            ToggleFrame.Parent = TabContent
+            ToggleFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+            ToggleFrame.BorderSizePixel = 0
+            ToggleFrame.Size = UDim2.new(1, 0, 0, 40)
+            
+            local ToggleCorner = Instance.new("UICorner")
+            ToggleCorner.CornerRadius = UDim.new(0, 6)
+            ToggleCorner.Parent = ToggleFrame
+            
+            local ToggleLabel = Instance.new("TextLabel")
+            ToggleLabel.Name = "ToggleLabel"
+            ToggleLabel.Parent = ToggleFrame
+            ToggleLabel.BackgroundTransparency = 1
+            ToggleLabel.Size = UDim2.new(1, -80, 1, 0)
+            ToggleLabel.Position = UDim2.new(0, 15, 0, 0)
+            ToggleLabel.Text = ToggleConfig.Name or "Toggle"
+            ToggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            ToggleLabel.TextScaled = true
+            ToggleLabel.Font = Enum.Font.Gotham
+            ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+            
+            local ToggleButton = Instance.new("TextButton")
+            ToggleButton.Name = "ToggleButton"
+            ToggleButton.Parent = ToggleFrame
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+            ToggleButton.BorderSizePixel = 0
+            ToggleButton.Size = UDim2.new(0, 50, 0, 25)
+            ToggleButton.Position = UDim2.new(1, -65, 0.5, -12.5)
+            ToggleButton.Text = ""
+            
+            local ToggleBtnCorner = Instance.new("UICorner")
+            ToggleBtnCorner.CornerRadius = UDim.new(0, 12)
+            ToggleBtnCorner.Parent = ToggleButton
+            
+            local ToggleIndicator = Instance.new("Frame")
+            ToggleIndicator.Name = "ToggleIndicator"
+            ToggleIndicator.Parent = ToggleButton
+            ToggleIndicator.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+            ToggleIndicator.BorderSizePixel = 0
+            ToggleIndicator.Size = UDim2.new(0, 21, 0, 21)
+            ToggleIndicator.Position = UDim2.new(0, 2, 0, 2)
+            
+            local IndicatorCorner = Instance.new("UICorner")
+            IndicatorCorner.CornerRadius = UDim.new(0, 10)
+            IndicatorCorner.Parent = ToggleIndicator
+            
+            local isToggled = ToggleConfig.Default or false
+            
+            local function updateToggle()
+                if isToggled then
+                    ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
+                    ToggleIndicator.Position = UDim2.new(1, -23, 0, 2)
+                    ToggleIndicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                else
+                    ToggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+                    ToggleIndicator.Position = UDim2.new(0, 2, 0, 2)
+                    ToggleIndicator.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+                end
+                
+                if ToggleConfig.Callback then
+                    ToggleConfig.Callback(isToggled)
+                end
+            end
+            
+            ToggleButton.MouseButton1Click:Connect(function()
+                isToggled = not isToggled
+                updateToggle()
+            end)
+            
+            updateToggle()
+            
+            -- Update canvas size
+            TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y)
+            
+            return {
+                Set = function(value)
+                    isToggled = value
+                    updateToggle()
+                end
+            }
+        end
+        
+        function Tab:CreateSlider(Config)
+            local SliderConfig = Config or {}
+            
+            local SliderFrame = Instance.new("Frame")
+            SliderFrame.Name = "SliderFrame"
+            SliderFrame.Parent = TabContent
+            SliderFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+            SliderFrame.BorderSizePixel = 0
+            SliderFrame.Size = UDim2.new(1, 0, 0, 60)
+            
+            local SliderCorner = Instance.new("UICorner")
+            SliderCorner.CornerRadius = UDim.new(0, 6)
+            SliderCorner.Parent = SliderFrame
+            
+            local SliderLabel = Instance.new("TextLabel")
+            SliderLabel.Name = "SliderLabel"
+            SliderLabel.Parent = SliderFrame
+            SliderLabel.BackgroundTransparency = 1
+            SliderLabel.Size = UDim2.new(1, -80, 0, 25)
+            SliderLabel.Position = UDim2.new(0, 15, 0, 5)
+            SliderLabel.Text = SliderConfig.Name or "Slider"
+            SliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            SliderLabel.TextScaled = true
+            SliderLabel.Font = Enum.Font.Gotham
+            SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+            
+            local ValueLabel = Instance.new("TextLabel")
+            ValueLabel.Name = "ValueLabel"
+            ValueLabel.Parent = SliderFrame
+            ValueLabel.BackgroundTransparency = 1
+            ValueLabel.Size = UDim2.new(0, 60, 0, 25)
+            ValueLabel.Position = UDim2.new(1, -75, 0, 5)
+            ValueLabel.Text = tostring(SliderConfig.Default or SliderConfig.Min or 0)
+            ValueLabel.TextColor3 = Color3.fromRGB(0, 162, 255)
+            ValueLabel.TextScaled = true
+            ValueLabel.Font = Enum.Font.GothamBold
+            
+            local SliderBar = Instance.new("Frame")
+            SliderBar.Name = "SliderBar"
+            SliderBar.Parent = SliderFrame
+            SliderBar.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+            SliderBar.BorderSizePixel = 0
+            SliderBar.Size = UDim2.new(1, -30, 0, 6)
+            SliderBar.Position = UDim2.new(0, 15, 1, -20)
+            
+            local BarCorner = Instance.new("UICorner")
+            BarCorner.CornerRadius = UDim.new(0, 3)
+            BarCorner.Parent = SliderBar
+            
+            local SliderFill = Instance.new("Frame")
+            SliderFill.Name = "SliderFill"
+            SliderFill.Parent = SliderBar
+            SliderFill.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
+            SliderFill.BorderSizePixel = 0
+            SliderFill.Size = UDim2.new(0, 0, 1, 0)
+            
+            local FillCorner = Instance.new("UICorner")
+            FillCorner.CornerRadius = UDim.new(0, 3)
+            FillCorner.Parent = SliderFill
+            
+            local currentValue = SliderConfig.Default or SliderConfig.Min or 0
+            local minValue = SliderConfig.Min or 0
+            local maxValue = SliderConfig.Max or 100
+            
+            local function updateSlider()
+                local percentage = (currentValue - minValue) / (maxValue - minValue)
+                SliderFill.Size = UDim2.new(percentage, 0, 1, 0)
+                ValueLabel.Text = tostring(math.floor(currentValue))
+                
+                if SliderConfig.Callback then
+                    SliderConfig.Callback(currentValue)
+                end
+            end
+            
+            local dragging = false
+            
+            SliderBar.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = true
+                end
+            end)
+            
+            UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = false
+                end
+            end)
+            
+            UserInputService.InputChanged:Connect(function(input)
+                if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                    local mouse = UserInputService:GetMouseLocation()
+                    local sliderPos = SliderBar.AbsolutePosition
+                    local sliderSize = SliderBar.AbsoluteSize
+                    
+                    local percentage = math.clamp((mouse.X - sliderPos.X) / sliderSize.X, 0, 1)
+                    currentValue = minValue + (percentage * (maxValue - minValue))
+                    updateSlider()
+                end
+            end)
+            
+            updateSlider()
+            
+            -- Update canvas size
+            TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y)
+            
+            return {
+                Set = function(value)
+                    currentValue = math.clamp(value, minValue, maxValue)
+                    updateSlider()
+                end
+            }
+        end
             local DropdownConfig = Config or {}
             
             local DropdownFrame = Instance.new("Frame")
@@ -457,6 +814,11 @@ function Rayfield:CreateWindow(Config)
         return Tab
     end
     
+    -- Compatibility function for OrionLib API
+    function Window:MakeTab(Config)
+        return self:CreateTab(Config)
+    end
+    
     return Window
 end
 
@@ -530,6 +892,11 @@ function Rayfield:Notify(Config)
     slideOut.Completed:Connect(function()
         NotifyGui:Destroy()
     end)
+end
+
+-- Compatibility function for OrionLib API
+function Rayfield:MakeWindow(Config)
+    return self:CreateWindow(Config)
 end
 
 return Rayfield
