@@ -609,10 +609,46 @@ function Library.CreateLib(title, theme)
             return TextBox
         end
         
+        -- Compatibility methods for OrionLib API
+        function Section:AddButton(buttonName, callback)
+            return self:NewButton(buttonName, callback)
+        end
+        
+        function Section:AddToggle(toggleName, callback)
+            return self:NewToggle(toggleName, callback)
+        end
+        
+        function Section:AddSlider(sliderName, min, max, default, callback)
+            return self:NewSlider(sliderName, min, max, default, callback)
+        end
+        
+        function Section:AddDropdown(dropdownName, options, callback)
+            return self:NewDropdown(dropdownName, options, callback)
+        end
+        
+        function Section:AddTextBox(textboxName, callback)
+            return self:NewTextBox(textboxName, callback)
+        end
+        
         return Section
     end
     
+    -- Compatibility function for OrionLib API
+    function Lib:MakeWindow(Config)
+        return self
+    end
+    
+    function Lib:MakeTab(tabName)
+        return self:NewTab(tabName)
+    end
+    
     return Lib
+end
+
+-- Compatibility function for OrionLib API at library level
+function Library.MakeWindow(Config)
+    local WindowConfig = Config or {}
+    return Library.CreateLib(WindowConfig.Name or "Kavo UI", WindowConfig.Theme or "Ocean")
 end
 
 -- Notification system
