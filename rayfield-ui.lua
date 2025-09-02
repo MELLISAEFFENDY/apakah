@@ -894,9 +894,38 @@ function Rayfield:Notify(Config)
     end)
 end
 
--- Compatibility function for OrionLib API
-function Rayfield:MakeWindow(Config)
-    return self:CreateWindow(Config)
+-- OrionLib Compatibility Layer
+local CompatibilityLayer = {}
+
+-- Make Rayfield compatible with OrionLib API
+function CompatibilityLayer:MakeWindow(Config)
+    return Rayfield:CreateWindow(Config)
 end
 
-return Rayfield
+function CompatibilityLayer.MakeWindow(Config)
+    return Rayfield:CreateWindow(Config)
+end
+
+-- Copy all Rayfield methods to compatibility layer
+for key, value in pairs(Rayfield) do
+    if type(value) == "function" then
+        CompatibilityLayer[key] = value
+    end
+end
+
+-- Additional OrionLib methods
+CompatibilityLayer.MakeNotification = function(Config)
+    return Rayfield:Notify(Config)
+end
+
+CompatibilityLayer.Init = function()
+    return true
+end
+
+CompatibilityLayer.Destroy = function()
+    if Rayfield.Destroy then
+        return Rayfield:Destroy()
+    end
+end
+
+return CompatibilityLayer
