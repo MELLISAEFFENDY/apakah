@@ -90,25 +90,34 @@ if calledFromLoader then
     OrionLib = _G.SelectedUILibrary
     print("🎨 UI: Using pre-selected library from loader")
 else
-    -- Original loading system with uiv2.lua support
+    -- GitHub loading system - consistent with loader.lua
     local success1, result1 = pcall(function()
-        -- Priority 1: Check for uiv2.lua with wrapper
+        -- Priority 1: Check for cached uiv2.lua with wrapper
         if readfile and isfile and isfile('uiv2.lua') and isfile('uiv2-wrapper.lua') then
             OrionLib = loadstring(readfile('uiv2-wrapper.lua'))()
-            print("🎨 UIv2: Successfully using uiv2.lua with compatibility wrapper!")
+            print("🎨 UIv2: Successfully using cached uiv2.lua with compatibility wrapper!")
             print("✨ Interface: Modern uiv2.lua design activated")
-        -- Priority 2: Standard ui.lua
+        -- Priority 2: Check for cached ui.lua
         elseif readfile and isfile and isfile('ui.lua') then
             OrionLib = loadstring(readfile('ui.lua'))()
-            print("📁 OrionLib: Loaded from local ui.lua file")
-        -- Priority 3: Direct uiv2.lua (requires manual API changes)
+            print("📁 OrionLib: Loaded from cached ui.lua file")
+        -- Priority 3: Check for cached rayfield-ui.lua
+        elseif readfile and isfile and isfile('rayfield-ui.lua') then
+            OrionLib = loadstring(readfile('rayfield-ui.lua'))()
+            print("🎨 Rayfield UI: Loaded from cached rayfield-ui.lua file")
+        -- Priority 4: Check for cached kavo-ui.lua
+        elseif readfile and isfile and isfile('kavo-ui.lua') then
+            OrionLib = loadstring(readfile('kavo-ui.lua'))()
+            print("🎨 Kavo UI: Loaded from cached kavo-ui.lua file")
+        -- Priority 5: Direct uiv2.lua (requires manual API changes)
         elseif readfile and isfile and isfile('uiv2.lua') then
             warn("⚠️ uiv2.lua found but no wrapper. Attempting direct load...")
             OrionLib = loadstring(readfile('uiv2.lua'))()
             print("🎨 UIv2: Loaded uiv2.lua directly (some OrionLib features may not work)")
             print("💡 Tip: Add uiv2-wrapper.lua for full compatibility")
         else
-            -- Fallback: Load OrionLib from our repository
+            -- Fallback: Load OrionLib from GitHub
+            print("📥 No cached UI found, downloading OrionLib from GitHub...")
             OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/ui.lua'))()
             print("🌐 OrionLib: Loaded from GitHub")
         end
@@ -118,6 +127,7 @@ else
         warn("⚠️ Failed to load OrionLib: " .. tostring(result1))
         -- Try alternative fallback
         local success2, result2 = pcall(function()
+            print("📥 Trying alternative OrionLib source...")
             OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
             print("🌐 OrionLib: Loaded from alternative source")
         end)
@@ -131,6 +141,37 @@ end
 if not OrionLib then
     error("❌ OrionLib is nil after loading!")
 end
+
+-- Debug: Check if OrionLib has required methods
+print("🔍 Debug: Checking OrionLib methods...")
+print("OrionLib type:", type(OrionLib))
+if type(OrionLib) == "table" then
+    print("MakeWindow method:", type(OrionLib.MakeWindow))
+    
+    -- List available methods
+    local methods = {}
+    for key, value in pairs(OrionLib) do
+        if type(value) == "function" then
+            table.insert(methods, key)
+        end
+    end
+    print("Available methods:", table.concat(methods, ", "))
+else
+    error("❌ OrionLib is not a table! Type: " .. type(OrionLib))
+end
+
+-- Verify MakeWindow exists
+if not OrionLib.MakeWindow or type(OrionLib.MakeWindow) ~= "function" then
+    local methods = {}
+    for key, value in pairs(OrionLib) do
+        if type(value) == "function" then
+            table.insert(methods, key)
+        end
+    end
+    error("❌ OrionLib.MakeWindow is missing or not a function! Available methods: " .. table.concat(methods, ", "))
+end
+
+print("✅ OrionLib loaded successfully with MakeWindow method!")
 
 --// Load Instant Reel Module
 local InstantReel
