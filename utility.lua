@@ -8,7 +8,6 @@
     🛠️ Basic Features:
     - Infinite Oxygen (No drowning)
     - No Temperature Effects (No winter/cold damage)
-    - Noclip (Walk through walls)
     - Anti-Down (Anti falling damage)
     - WalkSpeed Control (Custom walking speed)
     - Unlimited Jump (Infinite jump power)
@@ -38,7 +37,6 @@ local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 --// State Variables
 local noOxygenEnabled = false
 local noTemperatureEnabled = false
-local noclipEnabled = false
 local antiDownEnabled = false
 local walkSpeedEnabled = false
 local unlimitedJumpEnabled = false
@@ -149,41 +147,6 @@ function UtilitySystem.setNoTemperature(enabled)
         character:SetAttribute("Refill", false)
         
         print("🌡️ No Temperature: DISABLED")
-    end
-end
-
---// Noclip System
-function UtilitySystem.setNoclip(enabled)
-    noclipEnabled = enabled
-    
-    if enabled then
-        connections.noclip = RunService.Stepped:Connect(function()
-            if character and character.Parent then
-                for _, part in pairs(character:GetDescendants()) do
-                    if part:IsA("BasePart") and part.CanCollide == true then
-                        part.CanCollide = false
-                    end
-                end
-            end
-        end)
-        
-        print("👻 Noclip: ENABLED - You can walk through walls!")
-    else
-        if connections.noclip then
-            connections.noclip:Disconnect()
-            connections.noclip = nil
-        end
-        
-        -- Restore collision
-        if character and character.Parent then
-            for _, part in pairs(character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = true
-                end
-            end
-        end
-        
-        print("👻 Noclip: DISABLED")
     end
 end
 
@@ -784,10 +747,6 @@ end
 
 function UtilitySystem.getNoTemperatureStatus()
     return noTemperatureEnabled
-end
-
-function UtilitySystem.getNoclipStatus()
-    return noclipEnabled
 end
 
 function UtilitySystem.getAntiDownStatus()
