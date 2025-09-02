@@ -81,12 +81,22 @@ local autoCastDelay = 0.5
 local autoReelDelay = 0.5
 local dropBobberTime = 15
 
---// Load UI Library
+--// Load UI Library with uiv2.lua support
 local OrionLib
 local success1, result1 = pcall(function()
-    if readfile and isfile and isfile('ui.lua') then
+    -- Priority 1: Check for uiv2.lua with wrapper
+    if readfile and isfile and isfile('uiv2.lua') and isfile('uiv2-wrapper.lua') then
+        OrionLib = loadstring(readfile('uiv2-wrapper.lua'))()
+        print("📁 OrionLib: Loaded from uiv2.lua with compatibility wrapper")
+    -- Priority 2: Standard ui.lua
+    elseif readfile and isfile and isfile('ui.lua') then
         OrionLib = loadstring(readfile('ui.lua'))()
-        print("📁 OrionLib: Loaded from local file")
+        print("📁 OrionLib: Loaded from local ui.lua file")
+    -- Priority 3: Direct uiv2.lua (requires manual API changes)
+    elseif readfile and isfile and isfile('uiv2.lua') then
+        warn("⚠️ uiv2.lua found but no wrapper. UI may not work correctly.")
+        OrionLib = loadstring(readfile('uiv2.lua'))()
+        print("📁 OrionLib: Loaded from uiv2.lua (compatibility issues possible)")
     else
         -- Fallback: Load OrionLib from our repository
         OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/ui.lua'))()
