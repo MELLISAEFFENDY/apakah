@@ -24,7 +24,7 @@ local UILibraries = {
     {
         name = "Rayfield UI",
         file = "rayfield-ui.lua",
-        url = "local",
+        url = "https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/rayfield-ui.lua",
         description = "🏆 Fastest & Most Responsive",
         performance = 95,
         features = {"Ultra Fast", "60fps Smooth", "Minimal Memory"},
@@ -34,7 +34,7 @@ local UILibraries = {
     {
         name = "UIv2 Library",
         file = "uiv2.lua",
-        url = "local",
+        url = "https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/uiv2.lua",
         description = "🎨 Modern & Aesthetic Design",
         performance = 90,
         features = {"Modern Design", "Smooth Animations", "Lightweight"},
@@ -54,7 +54,7 @@ local UILibraries = {
     {
         name = "Kavo UI",
         file = "kavo-ui.lua",
-        url = "local",
+        url = "https://raw.githubusercontent.com/MELLISAEFFENDY/apakah/main/kavo-ui.lua",
         description = "🎯 Simple & Clean",
         performance = 88,
         features = {"Minimalist", "Clean Design", "Good Performance"},
@@ -63,47 +63,29 @@ local UILibraries = {
     }
 }
 
--- Check what UI files are available locally
+-- Check what UI files are available
 local function checkAvailableUIs()
     local available = {}
     for _, ui in pairs(UILibraries) do
-        if ui.url == "local" then
-            -- Enhanced file detection for local files
-            local fileExists = false
-            if readfile and isfile then
-                local success, result = pcall(function()
-                    return isfile(ui.file)
-                end)
-                fileExists = success and result
-            end
-            
-            if fileExists then
-                ui.available = true
-                ui.status = "✅ Local File Ready"
-                print("✅ Found local file: " .. ui.file)
-            else
-                ui.available = false
-                ui.status = "❌ File Not Found"
-                print("❌ Missing local file: " .. ui.file)
-            end
-        elseif readfile and isfile then
+        -- All UIs will be downloaded from GitHub
+        if readfile and isfile then
             -- Check for cached files
             local success, result = pcall(function()
                 return isfile(ui.file)
             end)
             if success and result then
                 ui.available = true
-                ui.status = "✅ Local Cache Available"
+                ui.status = "✅ Cached & Ready"
                 print("✅ Found cached file: " .. ui.file)
             else
                 ui.available = "download"
-                ui.status = "📥 Will Download"
-                print("📥 Will download: " .. ui.file)
+                ui.status = "📥 Will Download from GitHub"
+                print("📥 Will download from GitHub: " .. ui.file)
             end
         else
             ui.available = "download"
-            ui.status = "📥 Will Download"
-            print("📥 No file functions - will download: " .. ui.file)
+            ui.status = "📥 Will Download from GitHub"
+            print("📥 No file functions - will download from GitHub: " .. ui.file)
         end
         table.insert(available, ui)
     end
@@ -412,8 +394,11 @@ local function loadSelectedUI(selectedUI)
     
     -- First load the UI library
     local success, OrionLib = pcall(function()
-        if selectedUI.url == "local" then
-            print("🔄 Loading local UI: " .. selectedUI.file)
+        print("🌐 Loading UI from GitHub: " .. selectedUI.url)
+        
+        -- Check if we have a cached version first
+        if selectedUI.file and readfile and isfile and isfile(selectedUI.file) then
+            print("� Using cached file: " .. selectedUI.file)
             
             -- Special handling for uiv2.lua
             if selectedUI.file == "uiv2.lua" then
@@ -432,23 +417,21 @@ local function loadSelectedUI(selectedUI)
                     return loadstring(readfile(selectedUI.file))()
                 end
             else
-                print("📁 Loading standard local file: " .. selectedUI.file)
                 return loadstring(readfile(selectedUI.file))()
             end
         else
-            print("🌐 Downloading from URL: " .. selectedUI.url)
-            if selectedUI.file and isfile(selectedUI.file) then
-                print("📋 Using cached file: " .. selectedUI.file)
-                return loadstring(readfile(selectedUI.file))()
-            else
-                print("📥 Downloading fresh copy...")
-                local response = game:HttpGet(selectedUI.url)
-                if writefile then
+            print("📥 Downloading fresh copy from GitHub...")
+            local response = game:HttpGet(selectedUI.url)
+            
+            -- Cache the downloaded file
+            if writefile then
+                pcall(function()
                     writefile(selectedUI.file, response)
                     print("💾 Cached to: " .. selectedUI.file)
-                end
-                return loadstring(response)()
+                end)
             end
+            
+            return loadstring(response)()
         end
     end)
     
