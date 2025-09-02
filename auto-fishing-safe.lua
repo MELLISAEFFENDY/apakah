@@ -121,7 +121,7 @@ end
 local Window = OrionLib:MakeWindow({
     Name = "🎣 Auto Fishing Pro v1.6",
     HidePremium = false,
-    SaveConfig = true,
+    SaveConfig = false,
     ConfigFolder = "AutoFishingPro",
     IntroText = "Auto Fishing Pro - Safe Edition",
     IntroIcon = "rbxassetid://4483345875"
@@ -143,7 +143,7 @@ local FreezeToggle = CharacterSection:AddToggle({
     Name = "Freeze Character",
     Default = false,
     Flag = "freezechar",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['freezechar'] = Value
         if not Value then
@@ -161,7 +161,7 @@ local AutoCastToggle = FishingSection:AddToggle({
     Name = "Auto Cast",
     Default = false,
     Flag = "autocast",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['autocast'] = Value
     end    
@@ -171,7 +171,7 @@ local AutoShakeToggle = FishingSection:AddToggle({
     Name = "Auto Shake",
     Default = false,
     Flag = "autoshake",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['autoshake'] = Value
     end    
@@ -181,7 +181,7 @@ local AutoShakeV2Toggle = FishingSection:AddToggle({
     Name = "Auto Shake V2 (Invisible)",
     Default = false,
     Flag = "autoshakev2",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['autoshakev2'] = Value
     end    
@@ -191,7 +191,7 @@ local AutoReelToggle = FishingSection:AddToggle({
     Name = "Auto Reel",
     Default = false,
     Flag = "autoreel",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['autoreel'] = Value
     end    
@@ -201,7 +201,7 @@ local AutoDropBobberToggle = FishingSection:AddToggle({
     Name = "Auto Drop Bobber",
     Default = false,
     Flag = "autodropbobber", 
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['autodropbobber'] = Value
     end    
@@ -216,7 +216,7 @@ local DropBobberTimeSlider = FishingSection:AddSlider({
     Increment = 1,
     ValueName = "seconds",
     Flag = "dropbobbertime",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['dropbobbertime'] = Value
     end    
@@ -232,7 +232,7 @@ if checkFunc(hookmetamethod) then
         Name = "Perfect Cast",
         Default = false,
         Flag = "perfectcast",
-        Save = true,
+        Save = false,
         Callback = function(Value)
             flags['perfectcast'] = Value
         end    
@@ -242,7 +242,7 @@ if checkFunc(hookmetamethod) then
         Name = "Always Catch",
         Default = false,
         Flag = "alwayscatch",
-        Save = true,
+        Save = false,
         Callback = function(Value)
             flags['alwayscatch'] = Value
         end    
@@ -260,7 +260,7 @@ local InstantReelToggle = InstantReelSection:AddToggle({
     Name = "Enable Instant Reel",
     Default = false,
     Flag = "instantreel",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['instantreel'] = Value
         if InstantReel and InstantReel.setEnabled then
@@ -273,7 +273,7 @@ local InstantModeToggle = InstantReelSection:AddToggle({
     Name = "Instant Mode (High Risk)",
     Default = false,
     Flag = "instantmode",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['instantmode'] = Value
         if InstantReel and InstantReel.setInstantMode then
@@ -286,7 +286,7 @@ local FastModeToggle = InstantReelSection:AddToggle({
     Name = "Fast Mode (Safer)",
     Default = true,
     Flag = "fastmode",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['fastmode'] = Value
         if InstantReel and InstantReel.setFastMode then
@@ -299,7 +299,7 @@ local SafeModeToggle = InstantReelSection:AddToggle({
     Name = "Anti-Detection Mode",
     Default = true,
     Flag = "safemode",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['safemode'] = Value
         if InstantReel and InstantReel.setDetectionAvoidance then
@@ -577,6 +577,17 @@ OrionLib:MakeNotification({
     Image = "rbxassetid://4483345875",
     Time = 5
 })
+
+-- Config notification
+spawn(function()
+    wait(3)
+    OrionLib:MakeNotification({
+        Name = "⚙️ Config Settings",
+        Content = "Config saving is DISABLED. Settings will reset when script reloads.",
+        Image = "rbxassetid://4483345875",
+        Time = 6
+    })
+end)
 
 print("🎣 Auto Fishing Pro v1.6 - SAFE EDITION - Script loaded successfully!")
 print("🛡️ Safe Module Loader - All modules protected from nil errors!")

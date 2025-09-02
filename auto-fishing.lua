@@ -870,10 +870,11 @@ if checkFunc(hookmetamethod) then
 end
 
 --// Create Main Window
+-- CONFIG DISABLED: Script will NOT save any settings to prevent data persistence
 local Window = OrionLib:MakeWindow({
     Name = "🎣 Auto Fishing Pro",
     HidePremium = false,
-    SaveConfig = true,
+    SaveConfig = false,         -- DISABLED: No config saving
     ConfigFolder = "AutoFishingPro",
     IntroText = "Auto Fishing Pro",
     IntroIcon = "rbxassetid://4483345875"
@@ -905,7 +906,7 @@ local FreezeToggle = CharacterSection:AddToggle({
     Name = "Freeze Character",
     Default = false,
     Flag = "freezechar",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['freezechar'] = Value
         if not Value then
@@ -928,7 +929,7 @@ local AutoCastToggle = FishingSection:AddToggle({
     Name = "Auto Cast",
     Default = false,
     Flag = "autocast",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['autocast'] = Value
     end    
@@ -938,7 +939,7 @@ local AutoShakeToggle = FishingSection:AddToggle({
     Name = "Auto Shake",
     Default = false,
     Flag = "autoshake",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['autoshake'] = Value
     end    
@@ -948,7 +949,7 @@ local AutoShakeV2Toggle = FishingSection:AddToggle({
     Name = "Auto Shake V2 (Invisible)",
     Default = false,
     Flag = "autoshakev2",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['autoshakev2'] = Value
         if Value then
@@ -971,7 +972,7 @@ local AutoReelToggle = FishingSection:AddToggle({
     Name = "Auto Reel",
     Default = false,
     Flag = "autoreel",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['autoreel'] = Value
     end    
@@ -981,7 +982,7 @@ local AutoDropBobberToggle = FishingSection:AddToggle({
     Name = "Auto Drop Bobber",
     Default = false,
     Flag = "autodropbobber", 
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['autodropbobber'] = Value
     end    
@@ -996,7 +997,7 @@ local DropBobberTimeSlider = FishingSection:AddSlider({
     Increment = 1,
     ValueName = "seconds",
     Flag = "dropbobbertime",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         dropBobberTime = Value
         flags['dropbobbertime'] = Value
@@ -1028,7 +1029,7 @@ local AutoCastDelaySlider = FishingSection:AddSlider({
     Increment = 0.1,
     ValueName = "seconds",
     Flag = "autocastdelay",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         autoCastDelay = Value
         flags['autocastdelay'] = Value
@@ -1059,7 +1060,7 @@ local AutoReelDelaySlider = FishingSection:AddSlider({
     Increment = 0.1,
     ValueName = "seconds",
     Flag = "autoreeldelay",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         autoReelDelay = Value
         flags['autoreeldelay'] = Value
@@ -1091,7 +1092,7 @@ if checkFunc(hookmetamethod) then
         Name = "Perfect Cast",
         Default = false,
         Flag = "perfectcast",
-        Save = true,
+        Save = false,
         Callback = function(Value)
             flags['perfectcast'] = Value
         end    
@@ -1101,7 +1102,7 @@ if checkFunc(hookmetamethod) then
         Name = "Always Catch",
         Default = false,
         Flag = "alwayscatch",
-        Save = true,
+        Save = false,
         Callback = function(Value)
             flags['alwayscatch'] = Value
         end    
@@ -1119,7 +1120,7 @@ local InstantReelToggle = InstantReelSection:AddToggle({
     Name = "Enable Instant Reel",
     Default = false,
     Flag = "instantreel",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['instantreel'] = Value
         InstantReel.setEnabled(Value)
@@ -1130,7 +1131,7 @@ local InstantModeToggle = InstantReelSection:AddToggle({
     Name = "Instant Mode (High Risk)",
     Default = false,
     Flag = "instantmode",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['instantmode'] = Value
         InstantReel.setInstantMode(Value)
@@ -1141,7 +1142,7 @@ local FastModeToggle = InstantReelSection:AddToggle({
     Name = "Fast Mode (Safer)",
     Default = true,
     Flag = "fastmode",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['fastmode'] = Value
         InstantReel.setFastMode(Value)
@@ -1152,7 +1153,7 @@ local SafeModeToggle = InstantReelSection:AddToggle({
     Name = "Anti-Detection Mode",
     Default = true,
     Flag = "safemode",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['safemode'] = Value
         InstantReel.setDetectionAvoidance(Value)
@@ -1693,7 +1694,7 @@ local TweenToggle = TeleportOptionsSection:AddToggle({
     Name = "Smooth Teleport (Tween)",
     Default = false,
     Flag = "smoothteleport",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['smoothteleport'] = Value
     end    
@@ -2100,7 +2101,7 @@ local NoOxygenToggle = PlayerSection:AddToggle({
     Name = "No Oxygen",
     Default = false,
     Flag = "nooxygenutility",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         if UtilitySystem then
             UtilitySystem.setNoOxygen(Value)
@@ -2113,7 +2114,7 @@ local NoTemperatureToggle = PlayerSection:AddToggle({
     Name = "No Temperature",
     Default = false,
     Flag = "notemperatureutility",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         if UtilitySystem then
             UtilitySystem.setNoTemperature(Value)
@@ -2126,7 +2127,7 @@ local NoclipToggle = PlayerSection:AddToggle({
     Name = "Noclip",
     Default = false,
     Flag = "noclipUtility",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         if UtilitySystem then
             UtilitySystem.setNoclip(Value)
@@ -2139,7 +2140,7 @@ local AntiDownToggle = PlayerSection:AddToggle({
     Name = "Anti-Down (No Fall Damage)",
     Default = false,
     Flag = "antidownutility",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         if UtilitySystem then
             UtilitySystem.setAntiDown(Value)
@@ -2160,7 +2161,7 @@ local WalkSpeedToggle = MovementSection:AddToggle({
     Name = "Custom WalkSpeed",
     Default = false,
     Flag = "walkspeedutility",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         local speed = flags['walkspeedvalue'] or 16
         if UtilitySystem then
@@ -2179,7 +2180,7 @@ local WalkSpeedSlider = MovementSection:AddSlider({
     Increment = 1,
     ValueName = "speed",
     Flag = "walkspeedvalue",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['walkspeedvalue'] = Value
         if flags['walkspeedutility'] and UtilitySystem then
@@ -2208,7 +2209,7 @@ local JumpPowerToggle = MovementSection:AddToggle({
     Name = "Custom Jump Power",
     Default = false,
     Flag = "jumppowerutility",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         local power = flags['jumppowervalue'] or 50
         if UtilitySystem then
@@ -2227,7 +2228,7 @@ local JumpPowerSlider = MovementSection:AddSlider({
     Increment = 1,
     ValueName = "power",
     Flag = "jumppowervalue",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         flags['jumppowervalue'] = Value
         if flags['jumppowerutility'] and UtilitySystem then
@@ -2270,7 +2271,7 @@ local AntiDetectStaffToggle = AdvancedSection:AddToggle({
     Name = "Anti Detect Staff",
     Default = false,
     Flag = "antidetectstaffutility",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         if UtilitySystem then
             UtilitySystem.setAntiDetectStaff(Value)
@@ -2283,7 +2284,7 @@ local AntiAFKToggle = AdvancedSection:AddToggle({
     Name = "Anti AFK",
     Default = false,
     Flag = "antiafkutility",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         if UtilitySystem then
             UtilitySystem.setAntiAFK(Value)
@@ -2296,7 +2297,7 @@ local ReducedLagToggle = AdvancedSection:AddToggle({
     Name = "Reduced Lag",
     Default = false,
     Flag = "reducedlagutility",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         if UtilitySystem then
             UtilitySystem.setReducedLag(Value)
@@ -2309,7 +2310,7 @@ local FastFPSToggle = AdvancedSection:AddToggle({
     Name = "⚠️ Fast FPS (RISKY)",
     Default = false,
     Flag = "fastfpsutility",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         if Value then
             -- Show warning notification
@@ -2330,7 +2331,7 @@ local ESPPlayerToggle = AdvancedSection:AddToggle({
     Name = "ESP Player",
     Default = false,
     Flag = "espplayerutility",
-    Save = true,
+    Save = false,
     Callback = function(Value)
         if UtilitySystem then
             UtilitySystem.setESPPlayer(Value)
@@ -2492,9 +2493,42 @@ InfoSection:AddLabel("💰 Auto Sell, 🏆 Auto Quest, 💎 Auto Treasure")
 InfoSection:AddLabel("🎲 Auto Skin Crates, 🥚 Auto Egg Opener")
 InfoSection:AddLabel("🚀 Enhanced teleport with 3 methods!")
 InfoSection:AddLabel("👻 Auto Shake V2 (Invisible) feature!")
+InfoSection:AddLabel(" ")
+InfoSection:AddLabel("⚙️ CONFIG STATUS: DISABLED")
+InfoSection:AddLabel("📝 Settings will NOT be saved")
+InfoSection:AddLabel("🔄 All settings reset when script reloads")
 
 local ControlSection = SettingsTab:AddSection({
     Name = "Script Controls"
+})
+
+ControlSection:AddButton({
+    Name = "🗑️ Delete Saved Config (if any)",
+    Callback = function()
+        pcall(function()
+            if delfolder then
+                delfolder("AutoFishingPro")
+                OrionLib:MakeNotification({
+                    Name = "🗑️ Config Deleted",
+                    Content = "Any existing AutoFishingPro config folder has been deleted.",
+                    Time = 3
+                })
+            elseif delfile then
+                delfile("AutoFishingPro/config.json")
+                OrionLib:MakeNotification({
+                    Name = "🗑️ Config Deleted",
+                    Content = "Config file deleted if it existed.",
+                    Time = 3
+                })
+            else
+                OrionLib:MakeNotification({
+                    Name = "❌ Delete Failed",
+                    Content = "File deletion functions not available in this executor.",
+                    Time = 3
+                })
+            end
+        end)
+    end    
 })
 
 ControlSection:AddButton({
@@ -2976,6 +3010,14 @@ OrionLib:MakeNotification({
     Content = "Check the '🔥 Exploit' tab for all new automation features!",
     Image = "rbxassetid://4483345875",
     Time = 5
+})
+
+wait(4)
+OrionLib:MakeNotification({
+    Name = "⚙️ Config Settings",
+    Content = "Config saving is DISABLED. Settings will reset when script reloads.",
+    Image = "rbxassetid://4483345875",
+    Time = 6
 })
 
 print("🔥🔥🔥 AUTO FISHING V3.0 - EXPLOIT EDITION LOADED! 🔥🔥🔥")

@@ -39,7 +39,7 @@ if OrionLib.MakeWindow then
         return OrionLib.MakeWindow({
             Name = "🧪 Test Window",
             HidePremium = false,
-            SaveConfig = true,
+            SaveConfig = false,
             ConfigFolder = "FischTestConfig"
         })
     end)

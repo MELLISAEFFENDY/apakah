@@ -59,7 +59,7 @@ print("🔍 Creating basic UI...")
 local Window = OrionLib:MakeWindow({
     Name = "🎣 Auto Fishing Pro - Safe Mode",
     HidePremium = false,
-    SaveConfig = true,
+    SaveConfig = false,
     ConfigFolder = "AutoFishingPro"
 })
 
@@ -124,3 +124,13 @@ OrionLib:MakeNotification({
     Content = "Script loaded in safe mode. Basic functionality available.",
     Time = 5
 })
+
+-- Config notification
+spawn(function()
+    wait(3)
+    OrionLib:MakeNotification({
+        Name = "⚙️ Config Settings",
+        Content = "Config saving is DISABLED. Settings will reset when script reloads.",
+        Time = 6
+    })
+end)
