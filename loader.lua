@@ -24,7 +24,7 @@ local UILibraries = {
     {
         name = "Rayfield UI",
         file = "rayfield-ui.lua",
-        url = "https://sirius.menu/rayfield",
+        url = "local",
         description = "🏆 Fastest & Most Responsive",
         performance = 95,
         features = {"Ultra Fast", "60fps Smooth", "Minimal Memory"},
@@ -54,7 +54,7 @@ local UILibraries = {
     {
         name = "Kavo UI",
         file = "kavo-ui.lua",
-        url = "https://raw.githubusercontent.com/xHeptc/Kavo-UI/main/source.lua",
+        url = "local",
         description = "🎯 Simple & Clean",
         performance = 88,
         features = {"Minimalist", "Clean Design", "Good Performance"},
@@ -68,19 +68,42 @@ local function checkAvailableUIs()
     local available = {}
     for _, ui in pairs(UILibraries) do
         if ui.url == "local" then
-            if readfile and isfile and isfile(ui.file) then
+            -- Enhanced file detection for local files
+            local fileExists = false
+            if readfile and isfile then
+                local success, result = pcall(function()
+                    return isfile(ui.file)
+                end)
+                fileExists = success and result
+            end
+            
+            if fileExists then
                 ui.available = true
                 ui.status = "✅ Local File Ready"
+                print("✅ Found local file: " .. ui.file)
             else
                 ui.available = false
                 ui.status = "❌ File Not Found"
+                print("❌ Missing local file: " .. ui.file)
             end
-        elseif readfile and isfile and isfile(ui.file) then
-            ui.available = true
-            ui.status = "✅ Local Cache Available"
+        elseif readfile and isfile then
+            -- Check for cached files
+            local success, result = pcall(function()
+                return isfile(ui.file)
+            end)
+            if success and result then
+                ui.available = true
+                ui.status = "✅ Local Cache Available"
+                print("✅ Found cached file: " .. ui.file)
+            else
+                ui.available = "download"
+                ui.status = "📥 Will Download"
+                print("📥 Will download: " .. ui.file)
+            end
         else
             ui.available = "download"
             ui.status = "📥 Will Download"
+            print("📥 No file functions - will download: " .. ui.file)
         end
         table.insert(available, ui)
     end
@@ -390,18 +413,39 @@ local function loadSelectedUI(selectedUI)
     -- First load the UI library
     local success, OrionLib = pcall(function()
         if selectedUI.url == "local" then
-            if selectedUI.file == "uiv2.lua" and isfile("uiv2-wrapper.lua") then
-                return loadstring(readfile("uiv2-wrapper.lua"))()
+            print("🔄 Loading local UI: " .. selectedUI.file)
+            
+            -- Special handling for uiv2.lua
+            if selectedUI.file == "uiv2.lua" then
+                print("🎨 Detected UIv2.lua - checking for wrapper...")
+                
+                -- Check if wrapper exists
+                local wrapperSuccess, wrapperExists = pcall(function()
+                    return isfile("uiv2-wrapper.lua")
+                end)
+                
+                if wrapperSuccess and wrapperExists then
+                    print("✅ UIv2 wrapper found - loading with compatibility layer")
+                    return loadstring(readfile("uiv2-wrapper.lua"))()
+                else
+                    print("⚠️ UIv2 wrapper not found - loading direct uiv2.lua")
+                    return loadstring(readfile(selectedUI.file))()
+                end
             else
+                print("📁 Loading standard local file: " .. selectedUI.file)
                 return loadstring(readfile(selectedUI.file))()
             end
         else
+            print("🌐 Downloading from URL: " .. selectedUI.url)
             if selectedUI.file and isfile(selectedUI.file) then
+                print("📋 Using cached file: " .. selectedUI.file)
                 return loadstring(readfile(selectedUI.file))()
             else
+                print("📥 Downloading fresh copy...")
                 local response = game:HttpGet(selectedUI.url)
                 if writefile then
                     writefile(selectedUI.file, response)
+                    print("💾 Cached to: " .. selectedUI.file)
                 end
                 return loadstring(response)()
             end
@@ -448,19 +492,76 @@ local function selectUI()
     local availableUIs = checkAvailableUIs()
     local savedPreference = loadUIPreference()
     
-    -- Auto-load if preference exists and UI is available
-    if savedPreference then
-        for _, ui in pairs(availableUIs) do
-            if ui.name == savedPreference and ui.available == true then
-                print("🔄 Auto-loading preferred UI: " .. savedPreference)
-                local OrionLib = loadSelectedUI(ui)
-                return
-            end
-        end
-    end
+    -- ALWAYS show UI selector (removed auto-load behavior)
+    print("🎨 Showing UI Selection Menu...")
     
     -- Show UI selector
     local screenGui, scrollFrame = createUISelector()
+    
+    -- If there's a saved preference, highlight it
+    if savedPreference then
+        print("💾 Last used UI: " .. savedPreference)
+        
+        -- Add "Use Last UI" button at the top
+        local useLastCard = Instance.new("Frame")
+        useLastCard.Name = "UseLastCard"
+        useLastCard.Parent = scrollFrame
+        useLastCard.BackgroundColor3 = Color3.fromRGB(45, 85, 45)
+        useLastCard.BorderSizePixel = 0
+        useLastCard.Size = UDim2.new(1, 0, 0, 60)
+        useLastCard.LayoutOrder = -1
+        
+        local useLastCorner = Instance.new("UICorner")
+        useLastCorner.CornerRadius = UDim.new(0, 8)
+        useLastCorner.Parent = useLastCard
+        
+        local useLastStroke = Instance.new("UIStroke")
+        useLastStroke.Color = Color3.fromRGB(100, 255, 100)
+        useLastStroke.Thickness = 2
+        useLastStroke.Parent = useLastCard
+        
+        local useLastLabel = Instance.new("TextLabel")
+        useLastLabel.Name = "UseLastLabel"
+        useLastLabel.Parent = useLastCard
+        useLastLabel.BackgroundTransparency = 1
+        useLastLabel.Size = UDim2.new(1, -120, 1, 0)
+        useLastLabel.Position = UDim2.new(0, 15, 0, 0)
+        useLastLabel.Text = "⚡ Quick Load: " .. savedPreference
+        useLastLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        useLastLabel.TextScaled = true
+        useLastLabel.Font = Enum.Font.GothamBold
+        useLastLabel.TextXAlignment = Enum.TextXAlignment.Left
+        
+        local useLastBtn = Instance.new("TextButton")
+        useLastBtn.Name = "UseLastBtn"
+        useLastBtn.Parent = useLastCard
+        useLastBtn.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+        useLastBtn.BorderSizePixel = 0
+        useLastBtn.Size = UDim2.new(0, 100, 0, 35)
+        useLastBtn.Position = UDim2.new(1, -110, 0.5, -17.5)
+        useLastBtn.Text = "QUICK LOAD"
+        useLastBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+        useLastBtn.TextScaled = true
+        useLastBtn.Font = Enum.Font.GothamBold
+        
+        local useLastBtnCorner = Instance.new("UICorner")
+        useLastBtnCorner.CornerRadius = UDim.new(0, 4)
+        useLastBtnCorner.Parent = useLastBtn
+        
+        useLastBtn.MouseButton1Click:Connect(function()
+            -- Find the saved UI and load it
+            for _, ui in pairs(availableUIs) do
+                if ui.name == savedPreference and ui.available == true then
+                    screenGui:Destroy()
+                    loadSelectedUI(ui)
+                    return
+                end
+            end
+            
+            -- If saved UI not available, show error
+            warn("❌ Saved UI '" .. savedPreference .. "' not available")
+        end)
+    end
     
     for i, ui in pairs(availableUIs) do
         createUICard(ui, scrollFrame, i, function(selectedUI)
@@ -470,9 +571,50 @@ local function selectUI()
     end
     
     -- Update scroll frame size
-    local totalHeight = #availableUIs * 90
+    local totalHeight = #availableUIs * 90 + (savedPreference and 70 or 0)
     scrollFrame.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
 end
 
 -- Start the UI selection process
 selectUI()
+
+-- Debug function - can be called to test file detection
+_G.debugUIFiles = function()
+    print("🔍 Debugging UI file detection...")
+    
+    local files = {"uiv2.lua", "ui.lua", "uiv2-wrapper.lua", "rayfield-ui.lua", "kavo-ui.lua"}
+    
+    for _, file in pairs(files) do
+        if readfile and isfile then
+            local success, exists = pcall(function()
+                return isfile(file)
+            end)
+            
+            if success then
+                if exists then
+                    print("✅ " .. file .. " - FOUND")
+                    
+                    -- Try to read file size
+                    local sizeSuccess, content = pcall(function()
+                        return readfile(file)
+                    end)
+                    
+                    if sizeSuccess then
+                        print("   📏 Size: " .. string.len(content) .. " characters")
+                    end
+                else
+                    print("❌ " .. file .. " - NOT FOUND")
+                end
+            else
+                print("⚠️ " .. file .. " - ERROR CHECKING")
+            end
+        else
+            print("⚠️ No file functions available")
+            break
+        end
+    end
+    
+    print("🔍 Debug complete!")
+end
+
+print("💡 To debug file detection, run: _G.debugUIFiles()")
