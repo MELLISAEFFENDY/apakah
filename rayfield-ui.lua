@@ -897,12 +897,17 @@ end
 -- OrionLib Compatibility Layer
 local CompatibilityLayer = {}
 
+-- Debug: Add some debug info
+print("🔧 Rayfield UI: Setting up OrionLib compatibility layer...")
+
 -- Make Rayfield compatible with OrionLib API
 function CompatibilityLayer:MakeWindow(Config)
+    print("🪟 MakeWindow called via method syntax")
     return Rayfield:CreateWindow(Config)
 end
 
 function CompatibilityLayer.MakeWindow(Config)
+    print("🪟 MakeWindow called via function syntax")
     return Rayfield:CreateWindow(Config)
 end
 
@@ -919,12 +924,33 @@ CompatibilityLayer.MakeNotification = function(Config)
 end
 
 CompatibilityLayer.Init = function()
+    print("✅ OrionLib compatibility layer initialized")
     return true
 end
 
 CompatibilityLayer.Destroy = function()
     if Rayfield.Destroy then
         return Rayfield:Destroy()
+    end
+end
+
+-- Debug: Show available methods
+print("🔍 Available methods in CompatibilityLayer:")
+for key, value in pairs(CompatibilityLayer) do
+    if type(value) == "function" then
+        print("   📝 " .. key .. ": " .. type(value))
+    end
+end
+
+-- Ensure MakeWindow is definitely available
+if CompatibilityLayer.MakeWindow then
+    print("✅ MakeWindow method is available!")
+else
+    print("❌ MakeWindow method is missing!")
+    -- Force add it if missing
+    CompatibilityLayer.MakeWindow = function(Config)
+        print("🔧 Force-created MakeWindow function")
+        return Rayfield:CreateWindow(Config)
     end
 end
 
